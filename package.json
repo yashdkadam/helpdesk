@@ -1,0 +1,12 @@
+{
+  "name": "helpdesk",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": ["core", "server", "client"],
+  "scripts": {
+    "dev:server": "cd server && bun run dev",
+    "dev:client": "cd client && bun run dev",
+    "test": "cd client && bun run test",
+    "test:e2e": "cd e2e && bun run test"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__query-docs",
+      "Bash(bun --version)",
+      "PowerShell(bun *)",
+      "PowerShell(Get-Command *)",
+      "Bash(git init *)",
+      "Bash(mkdir -p core/constants core/schemas server/src/lib server/src/middleware server/src/routes server/prisma client/src/components/ui client/src/lib client/src/pages client/src/test)",
+      "Bash(bun install *)",
+      "Bash(wait *)",
+      "Bash(timeout 5 bun run src/index.ts)",
+      "PowerShell(bun run *)",
+      "Read(//d/d/claude-code/**)",
+      "Read(//d/d/claude-code/helpdesk/**)",
+      "Read(//d/d/claude-code/helpdesk/server/**)",
+      "Read(//d/d/claude-code/helpdesk/client/**)",
+      "Bash(bun run *)",
+      "Bash(curl -s http://localhost:3000/api/health)"
+    ]
+  }
+}
