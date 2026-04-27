@@ -17,7 +17,15 @@
       "Read(//d/d/claude-code/helpdesk/server/**)",
       "Read(//d/d/claude-code/helpdesk/client/**)",
       "Bash(bun run *)",
-      "Bash(curl -s http://localhost:3000/api/health)"
+      "Bash(curl -s http://localhost:3000/api/health)",
+      "Bash(pg_isready)",
+      "Bash(psql -U postgres -c \"\\\\l\")",
+      "PowerShell(Test-Path *)",
+      "PowerShell(& C:\\\\msys64\\\\mingw64\\\\bin\\\\pg_ctl.exe status -D \"C:/msys64/var/lib/postgresql/17/data\" 2>&1)",
+      "PowerShell(& C:\\\\msys64\\\\mingw64\\\\bin\\\\pg_ctl.exe -D \"C:/pgdata\" -l \"C:/pgdata/postgres.log\" start 2>&1)",
+      "PowerShell(Start-Sleep 4; & C:\\\\msys64\\\\mingw64\\\\bin\\\\psql.exe -U kadam -d postgres -c \"CREATE DATABASE helpdesk;\" 2>&1)",
+      "PowerShell(& C:\\\\msys64\\\\mingw64\\\\bin\\\\psql.exe -U postgres -d postgres -c \"CREATE DATABASE helpdesk;\" 2>&1)",
+      "Bash(psql -U postgres -d helpdesk -c \"\\\\dt\")"
     ]
   }
 }
