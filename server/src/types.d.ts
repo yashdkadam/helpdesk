@@ -7,7 +7,7 @@ declare global {
         id: string;
         email: string;
         name: string;
-        role: Role;
+        role?: Role;
       };
       session?: {
         id: string;
