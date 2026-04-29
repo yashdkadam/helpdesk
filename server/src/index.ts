@@ -14,6 +14,10 @@ app.use(
   })
 );
 
+app.post("/api/auth/sign-up/email", (_req, res) => {
+  res.status(403).json({ message: "Email and password sign up is not enabled", code: "EMAIL_AND_PASSWORD_SIGN_UP_IS_NOT_ENABLED" });
+});
+
 // Better Auth must be mounted before express.json()
 app.all("/api/auth/*splat", toNodeHandler(auth));
 

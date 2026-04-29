@@ -35,7 +35,11 @@
       "Bash(curl -sv -c /tmp/cookies.txt -b /tmp/cookies.txt -X POST http://localhost:3000/api/auth/sign-in/email -H 'Content-Type: application/json' -H 'Origin: http://localhost:5173' -d '{\"email\":\"test@example.com\",\"password\":\"password123\"}')",
       "Bash(curl -s -b /tmp/cookies.txt http://localhost:3000/api/me -H 'Origin: http://localhost:5173')",
       "Bash(curl -s -b /tmp/cookies.txt -c /tmp/cookies.txt -X POST http://localhost:3000/api/auth/sign-out -H 'Origin: http://localhost:5173')",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\" -b /tmp/cookies.txt http://localhost:3000/api/me)"
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" -b /tmp/cookies.txt http://localhost:3000/api/me)",
+      "Bash(curl *)",
+      "Bash(taskkill //F //IM bun.exe)",
+      "Bash(bun -e ' *)",
+      "Bash(bun test *)"
     ]
   }
 }
