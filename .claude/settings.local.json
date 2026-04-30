@@ -39,7 +39,11 @@
       "Bash(curl *)",
       "Bash(taskkill //F //IM bun.exe)",
       "Bash(bun -e ' *)",
-      "Bash(bun test *)"
+      "Bash(bun test *)",
+      "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
+      "PowerShell(netstat *)",
+      "Bash(xargs grep *)",
+      "Bash(bun *)"
     ]
   }
 }

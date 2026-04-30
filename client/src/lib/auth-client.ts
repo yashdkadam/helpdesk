@@ -1,5 +1,3 @@
 import { createAuthClient } from "better-auth/react";
 
-export const { signIn, signOut, useSession } = createAuthClient({
-  baseURL: "/api/auth",
-});
+export const { signIn, signOut, useSession } = createAuthClient();
