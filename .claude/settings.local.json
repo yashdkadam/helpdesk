@@ -43,7 +43,11 @@
       "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
       "PowerShell(netstat *)",
       "Bash(xargs grep *)",
-      "Bash(bun *)"
+      "Bash(bun *)",
+      "Read(//c/Users/kadam/.bun/bin/**)",
+      "Read(//root/.bun/bin/**)",
+      "Bash(node *)",
+      "PowerShell(\\(Get-Content D:\\\\claude-code\\\\helpdesk\\\\client\\\\node_modules\\\\@tailwindcss\\\\vite\\\\package.json | ConvertFrom-Json\\).version)"
     ]
   }
 }
