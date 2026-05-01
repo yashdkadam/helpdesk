@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import { fromNodeHeaders } from "better-auth/node";
 import { auth } from "../lib/auth";
+import type { Role } from "core/constants/role.ts";
 
 export async function requireAuth(
   req: Request,
@@ -18,6 +19,7 @@ export async function requireAuth(
     id: session.user.id,
     email: session.user.email,
     name: session.user.name,
+    role: session.user.role as Role,
   };
   req.session = {
     id: session.session.id,

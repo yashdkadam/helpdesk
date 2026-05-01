@@ -1,5 +1,6 @@
 import { Navigate } from "react-router-dom";
 import { useSession } from "@/lib/auth-client";
+import { Role } from "core/constants/role.ts";
 
 interface Props {
   children: React.ReactNode;
@@ -17,7 +18,7 @@ export default function AdminRoute({ children }: Props) {
   }
 
   if (!session) return <Navigate to="/login" replace />;
-  if (session.user.role !== "admin") return <Navigate to="/" replace />;
+  if (session.user.role !== Role.admin) return <Navigate to="/" replace />;
 
   return <>{children}</>;
 }

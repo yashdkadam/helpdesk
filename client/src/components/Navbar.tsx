@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { signOut, useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
+import { Role } from "core/constants/role.ts";
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -17,7 +18,7 @@ export default function Navbar() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
         <div className="flex items-center gap-6">
           <span className="font-semibold text-sm">Helpdesk</span>
-          {session?.user.role === "admin" && (
+          {session?.user.role === Role.admin && (
             <Link to="/users" className="text-sm text-muted-foreground hover:text-foreground">
               Users
             </Link>

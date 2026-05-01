@@ -20,6 +20,8 @@
     "cors": "^2.8.5",
     "dotenv": "^17.4.2",
     "express": "^5.1.0",
+    "express-rate-limit": "^8.4.1",
+    "helmet": "^8.1.0",
     "pg": "^8.20.0",
     "pg-boss": "^10.1.0",
     "zod": "^3.24.0"
@@ -28,6 +30,7 @@
     "@types/bun": "latest",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
+    "@types/express-rate-limit": "^6.0.2",
     "@types/pg": "^8.20.0",
     "prisma": "7",
     "typescript": "^5.7.0"
