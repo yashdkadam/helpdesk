@@ -90,15 +90,24 @@ The client proxies `/api/*` requests to the server via Vite config (target is co
 - **Library**: Better Auth with Prisma adapter (`better-auth/adapters/prisma`)
 - **Server config**: `server/src/lib/auth.ts` — exports `auth`; mounted at `/api/auth/{*any}` in `index.ts` (must be registered before `express.json()`)
   - `emailAndPassword` enabled; trusts `CLIENT_URL` env var (defaults to `http://localhost:5173`)
-- **Client config**: `client/src/lib/auth-client.ts` — `createAuthClient()` exports `signIn`, `signOut`, `useSession`
+  - `user.additionalFields.role` declared with `input: false` so it's included in session responses but cannot be set via the auth API
+- **Client config**: `client/src/lib/auth-client.ts` — `createAuthClient()` with `inferAdditionalFields<typeof auth>()` plugin; exports `signIn`, `signOut`, `useSession`
+  - `inferAdditionalFields` pulls the `role` type from the server `auth` instance — `session.user.role` is fully typed on the client
 - **Middleware**: `server/src/middleware/require-auth.ts` — `requireAuth` async middleware; calls `auth.api.getSession` via `fromNodeHeaders`
-  - Sets `req.user` (`{ id, email, name }`) and `req.session` (`{ id, token }`) on success; returns 401 if no session
+  - Sets `req.user` (`{ id, email, name, role }`) and `req.session` (`{ id, token }`) on success; returns 401 if no session
+- **Admin middleware**: `server/src/middleware/require-admin.ts` — `requireAdmin` middleware; returns 403 if `req.user.role !== Role.admin`; always stack after `requireAuth`: `router.get("/path", requireAuth, requireAdmin, handler)`
 - **Route protection (client)**: `ProtectedRoute` wraps authenticated routes — shows a spinner while session is loading, redirects to `/login` if unauthenticated
-- **Admin route protection (client)**: `AdminRoute` does not exist yet — needs to be built; should redirect non-admins to `/`
+- **Admin route protection (client)**: `AdminRoute` wraps admin-only routes — redirects unauthenticated to `/login`, redirects non-admins to `/`; uses `Role.admin` from `core/constants/role.ts`
 - **Sign-up is disabled** — users are seeded via `prisma/seed.ts`
 - **User roles**: `admin` and `agent` — Prisma `Role` enum on the `User` model (`role` field, default `agent`)
 - **Prisma auth models**: `User`, `Session`, `Account`, `Verification` (all lowercase table names via `@@map`)
-- **Rate limiting**: Auth routes are rate-limited, but only enforced when `NODE_ENV=production`
+
+## Security
+
+- **Helmet**: applied globally via `app.use(helmet())` in `index.ts`; `x-powered-by` header disabled
+- **Rate limiting**: `express-rate-limit` on all `/api/auth/*` routes — 20 requests per 15 min window; skipped when `NODE_ENV !== "production"` via the `skip` option
+- **Startup guard**: server throws on boot if `BETTER_AUTH_SECRET` is missing or starts with `"change-this"`
+- **Session token**: never returned in API responses — `/api/me` returns only `{ user }`
 
 ## Testing
 
@@ -118,3 +127,8 @@ The client proxies `/api/*` requests to the server via Vite config (target is co
 - **Only use for things that truly require a real browser + server** — never duplicate what unit tests already cover
 - Valid E2E scenarios: auth redirects, cross-page navigation, data persistence after reload, full-stack integration flows (e.g. webhook creates data → UI displays it)
 - Invalid E2E scenarios: rendering, display logic, component states, API call verification, form validation, error messages — use component tests for these
+- **Test database**: `helpdesk_test` (separate PostgreSQL database — must exist before running tests)
+- **Ports**: test server on 3001, test client on 5174 (proxies to 3001 via `VITE_API_URL`)
+- **Global setup** (`e2e/global-setup.ts`): runs `prisma migrate deploy` then `server/prisma/seed.e2e.ts` before each suite
+- **E2E seed** (`server/prisma/seed.e2e.ts`): truncates all auth tables, recreates `admin@example.com` (admin) and `agent@example.com` (agent)
+- **Shared test constants** (`e2e/test-env.ts`): ports, URLs, test DB URL, test auth secret — import here instead of hardcoding in tests

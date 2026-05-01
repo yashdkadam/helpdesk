@@ -47,7 +47,9 @@
       "Read(//c/Users/kadam/.bun/bin/**)",
       "Read(//root/.bun/bin/**)",
       "Bash(node *)",
-      "PowerShell(\\(Get-Content D:\\\\claude-code\\\\helpdesk\\\\client\\\\node_modules\\\\@tailwindcss\\\\vite\\\\package.json | ConvertFrom-Json\\).version)"
+      "PowerShell(\\(Get-Content D:\\\\claude-code\\\\helpdesk\\\\client\\\\node_modules\\\\@tailwindcss\\\\vite\\\\package.json | ConvertFrom-Json\\).version)",
+      "PowerShell(Get-ChildItem -Path D:\\\\claude-code\\\\helpdesk\\\\e2e -Recurse -Force | Where-Object { !$_.PSIsContainer })",
+      "PowerShell(psql *)"
     ]
   }
 }

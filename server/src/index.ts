@@ -27,6 +27,7 @@ const authRateLimit = rateLimit({
   max: 20,
   standardHeaders: true,
   legacyHeaders: false,
+  skip: () => process.env.NODE_ENV !== "production",
 });
 
 app.post("/api/auth/sign-up/email", (_req, res) => {

@@ -2,7 +2,7 @@
   "name": "helpdesk",
   "version": "1.0.0",
   "private": true,
-  "workspaces": ["core", "server", "client"],
+  "workspaces": ["core", "server", "client", "e2e"],
   "scripts": {
     "dev:server": "cd server && bun run dev",
     "dev:client": "cd client && bun run dev",
