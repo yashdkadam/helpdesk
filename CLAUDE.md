@@ -50,11 +50,21 @@ The client proxies `/api/*` requests to the server via Vite config (target is co
 - Do not wrap async route handlers in try/catch — Express 5 automatically catches rejected promises
 - Use the shared `Role` constant instead of hardcoded `"admin"` / `"agent"` strings (import from `core/constants/role.ts`, e.g. `import { Role } from "core/constants/role.ts"`)
 - Define shared constants and domain types in `core/constants/` as union types (not `enum` — the client has `erasableSyntaxOnly` enabled). Use `as const` objects when runtime access is needed (e.g. `Role`), and plain union types when only type checking is needed (e.g. `type TicketStatus = "open" | "resolved" | "closed"`).
-- Use React Hook Form with Zod resolver for client-side form validation (`useForm` + `zodResolver` from `@hookform/resolvers/zod`)
+- Use React Hook Form with Zod resolver for client-side form validation (`useForm` + `standardSchemaResolver` from `@hookform/resolvers/standard-schema`)
 - Use Axios for HTTP requests (not `fetch`)
 - Use TanStack React Query (`useQuery`, `useMutation`) for server state management (not `useEffect` + `useState`)
 - Use the `ErrorAlert` component for error messages (`import ErrorAlert from "@/components/ErrorAlert"`). For static messages: `<ErrorAlert message="Failed to load data" />`. For mutation/query errors with automatic Axios message extraction: `<ErrorAlert error={mutation.error} fallback="Failed to save" />`.
 - Use the `ErrorMessage` component for field validation errors (`import ErrorMessage from "@/components/ErrorMessage"`): `{errors.name && <ErrorMessage message={errors.name.message} />}`
+
+## shadcn/ui Setup
+
+- **Config**: `client/components.json` — style: default, baseColor: zinc, cssVariables: true
+- **Theme**: `client/src/index.css` — OKLCH-based default theme using `@theme inline` with `var(--)` references (not `hsl(var(--))`); includes `@custom-variant dark`
+- **cn utility**: `client/src/lib/utils.ts` — exports `cn` (clsx + tailwind-merge); use for all className merging in components
+- **Adding components**: `bunx shadcn@latest add <component>` from `client/` — reads `components.json` automatically
+- **Installed packages**: `clsx`, `tailwind-merge`, `class-variance-authority`, `@radix-ui/react-slot`, `@radix-ui/react-label`, `lucide-react`
+- **Existing UI components**: `button` (cva + Slot, supports `asChild`), `input`, `label`, `card`
+- **Input error state**: use `aria-invalid={!!errors.field}` — the `Input` component styles itself via `aria-invalid`; do NOT use a custom `error` prop
 
 ## Job Queue (pg-boss)
 
@@ -77,14 +87,17 @@ The client proxies `/api/*` requests to the server via Vite config (target is co
 
 ## Authentication
 
-- **Library**: Better Auth with Prisma adapter
-- **Server config**: `server/src/lib/auth.ts` — mounted at `/api/auth/{*any}` (must be before `express.json()`)
-- **Client config**: `client/src/lib/auth-client.ts` — exports `signIn`, `signOut`, `useSession`
-- **Middleware**: `server/src/middleware/require-auth.ts` — `requireAuth` guard that sets `req.user` and `req.session`
-- **Route protection (client)**: `ProtectedRoute` component wraps authenticated routes; redirects to `/login` if unauthenticated
-- **Admin route protection (client)**: `AdminRoute` component wraps admin-only routes; redirects non-admins to `/`
+- **Library**: Better Auth with Prisma adapter (`better-auth/adapters/prisma`)
+- **Server config**: `server/src/lib/auth.ts` — exports `auth`; mounted at `/api/auth/{*any}` in `index.ts` (must be registered before `express.json()`)
+  - `emailAndPassword` enabled; trusts `CLIENT_URL` env var (defaults to `http://localhost:5173`)
+- **Client config**: `client/src/lib/auth-client.ts` — `createAuthClient()` exports `signIn`, `signOut`, `useSession`
+- **Middleware**: `server/src/middleware/require-auth.ts` — `requireAuth` async middleware; calls `auth.api.getSession` via `fromNodeHeaders`
+  - Sets `req.user` (`{ id, email, name }`) and `req.session` (`{ id, token }`) on success; returns 401 if no session
+- **Route protection (client)**: `ProtectedRoute` wraps authenticated routes — shows a spinner while session is loading, redirects to `/login` if unauthenticated
+- **Admin route protection (client)**: `AdminRoute` does not exist yet — needs to be built; should redirect non-admins to `/`
 - **Sign-up is disabled** — users are seeded via `prisma/seed.ts`
-- **User roles**: `admin` and `agent` (defined as Prisma enum, default `agent`)
+- **User roles**: `admin` and `agent` — Prisma `Role` enum on the `User` model (`role` field, default `agent`)
+- **Prisma auth models**: `User`, `Session`, `Account`, `Verification` (all lowercase table names via `@@map`)
 - **Rate limiting**: Auth routes are rate-limited, but only enforced when `NODE_ENV=production`
 
 ## Testing
