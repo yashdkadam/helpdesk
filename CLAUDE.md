@@ -121,14 +121,8 @@ The client proxies `/api/*` requests to the server via Vite config (target is co
 - Mock Axios with `vi.mock("axios")` and `vi.mocked(axios, { deep: true })`
 
 ### E2E Tests
-- **Framework**: Playwright
-- Use the `e2e-test-writer` agent for writing Playwright E2E tests
+- **Framework**: Playwright — always use the `e2e-test-writer` agent for writing E2E tests; never write Playwright tests directly
 - Run with `bun run test:e2e` from root
-- **Only use for things that truly require a real browser + server** — never duplicate what unit tests already cover
-- Valid E2E scenarios: auth redirects, cross-page navigation, data persistence after reload, full-stack integration flows (e.g. webhook creates data → UI displays it)
-- Invalid E2E scenarios: rendering, display logic, component states, API call verification, form validation, error messages — use component tests for these
-- **Test database**: `helpdesk_test` (separate PostgreSQL database — must exist before running tests)
-- **Ports**: test server on 3001, test client on 5174 (proxies to 3001 via `VITE_API_URL`)
-- **Global setup** (`e2e/global-setup.ts`): runs `prisma migrate deploy` then `server/prisma/seed.e2e.ts` before each suite
-- **E2E seed** (`server/prisma/seed.e2e.ts`): truncates all auth tables, recreates `admin@example.com` (admin) and `agent@example.com` (agent)
-- **Shared test constants** (`e2e/test-env.ts`): ports, URLs, test DB URL, test auth secret — import here instead of hardcoding in tests
+- Full setup, port config, seeded credentials, and test conventions are documented in the `e2e-test-writer` agent (`e2e/.claude/agents/e2e-test-writer.md`)
+- **When to use**: only for scenarios that genuinely require a real browser + server — auth redirects, cross-page navigation, data persistence after reload, full-stack integration flows
+- **When NOT to use**: rendering, component states, form validation, error messages, API call verification — use component tests for these
