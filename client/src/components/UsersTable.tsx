@@ -1,12 +1,14 @@
+import { Pencil } from "lucide-react";
 import { type User } from "core/schemas/users";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface Props {
   users: User[] | undefined;
   isPending: boolean;
+  onEdit: (user: User) => void;
 }
 
-export default function UsersTable({ users, isPending }: Props) {
+export default function UsersTable({ users, isPending, onEdit }: Props) {
   if (isPending) {
     return (
       <div className="rounded-lg border overflow-hidden">
@@ -17,6 +19,7 @@ export default function UsersTable({ users, isPending }: Props) {
               <th className="px-4 py-3 text-left font-medium text-muted-foreground">Email</th>
               <th className="px-4 py-3 text-left font-medium text-muted-foreground">Role</th>
               <th className="px-4 py-3 text-left font-medium text-muted-foreground">Joined</th>
+              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -26,6 +29,7 @@ export default function UsersTable({ users, isPending }: Props) {
                 <td className="px-4 py-3"><Skeleton className="h-4 w-48" /></td>
                 <td className="px-4 py-3"><Skeleton className="h-5 w-14 rounded-md" /></td>
                 <td className="px-4 py-3"><Skeleton className="h-4 w-24" /></td>
+                <td className="px-4 py-3"></td>
               </tr>
             ))}
           </tbody>
@@ -45,6 +49,7 @@ export default function UsersTable({ users, isPending }: Props) {
             <th className="px-4 py-3 text-left font-medium text-muted-foreground">Email</th>
             <th className="px-4 py-3 text-left font-medium text-muted-foreground">Role</th>
             <th className="px-4 py-3 text-left font-medium text-muted-foreground">Joined</th>
+            <th className="px-4 py-3 text-left font-medium text-muted-foreground">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -57,6 +62,15 @@ export default function UsersTable({ users, isPending }: Props) {
               </td>
               <td className="px-4 py-3 text-muted-foreground">
                 {new Date(user.createdAt).toLocaleDateString()}
+              </td>
+              <td className="px-4 py-3">
+                <button
+                  onClick={() => onEdit(user)}
+                  className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground"
+                  aria-label="Edit user"
+                >
+                  <Pencil className="h-4 w-4" />
+                </button>
               </td>
             </tr>
           ))}

@@ -1,7 +1,7 @@
 import { screen, waitFor, fireEvent } from "@testing-library/react";
 import axios from "axios";
 import { vi, describe, test, expect, beforeEach } from "vitest";
-import CreateUserModal from "./CreateUserModal";
+import UserFormModal from "./UserFormModal";
 import { renderWithQuery } from "@/test/render";
 
 vi.mock("axios");
@@ -9,7 +9,7 @@ vi.mock("axios");
 const onClose = vi.fn();
 
 function renderModal(open = true) {
-  return renderWithQuery(<CreateUserModal open={open} onClose={onClose} />);
+  return renderWithQuery(<UserFormModal open={open} user={null} onClose={onClose} />);
 }
 
 function fillForm(name: string, email: string, password: string) {

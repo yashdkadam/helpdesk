@@ -4,8 +4,9 @@ import { auth } from "../lib/auth";
 import { requireAuth } from "../middleware/require-auth";
 import { requireAdmin } from "../middleware/require-admin";
 import { validate } from "../lib/validate";
-import { createUserSchema } from "core/schemas/users";
+import { createUserSchema, updateUserSchema } from "core/schemas/users";
 import { Role } from "core/constants/role.ts";
+import { hashPassword } from "better-auth/crypto";
 
 const router = Router();
 
@@ -37,6 +38,42 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
   });
 
   res.status(201).json({});
+});
+
+router.patch("/:id", requireAuth, requireAdmin, async (req, res) => {
+  const { id } = req.params;
+
+  const data = validate(updateUserSchema, req.body, res);
+  if (!data) return;
+
+  const user = await prisma.user.findUnique({ where: { id } });
+  if (!user) {
+    res.status(404).json({ error: "User not found" });
+    return;
+  }
+
+  if (data.email !== user.email) {
+    const existing = await prisma.user.findUnique({ where: { email: data.email } });
+    if (existing) {
+      res.status(409).json({ error: "Email already in use" });
+      return;
+    }
+  }
+
+  await prisma.user.update({
+    where: { id },
+    data: { name: data.name, email: data.email },
+  });
+
+  if (data.password) {
+    const hashed = await hashPassword(data.password);
+    await prisma.account.updateMany({
+      where: { userId: id, providerId: "credential" },
+      data: { password: hashed },
+    });
+  }
+
+  res.json({});
 });
 
 export default router;
