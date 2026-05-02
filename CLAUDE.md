@@ -115,10 +115,18 @@ The client proxies `/api/*` requests to the server via Vite config (target is co
 
 ### Component Tests
 - **Framework**: Vitest + React Testing Library
-- Run with `cd client && bun run test` (single run) or `bun run test:watch` (watch mode)
-- Place test files next to the component: `ComponentName.test.tsx`
-- Use `renderWithQuery` from `@/test/render` to wrap components that use TanStack React Query
-- Mock Axios with `vi.mock("axios")` and `vi.mocked(axios, { deep: true })`
+- **Scripts** (run from `client/`):
+  - `bun run test` — single run (use in CI)
+  - `bun run test:watch` — watch mode, re-runs on save
+  - `bun run test:ui` — browser UI at localhost for interactive development
+- **File placement**: next to the component — `ComponentName.test.tsx`
+- **Wrapping**: use `renderWithQuery` from `@/test/render` for any component that uses TanStack Query
+- **Mocking Axios**: `vi.mock("axios")` at the top of the file; access mocks via `vi.mocked(axios, { deep: true }).get` / `.post` etc.
+- **Reset mocks** between tests with `beforeEach(() => vi.resetAllMocks())`
+- **Async assertions**: use `waitFor` when data loads asynchronously — wait for something that only exists in the resolved state, not something shared with the loading state (e.g. a column header that appears in both skeleton and loaded table is not a reliable condition)
+- **Testing loading/skeleton state**: mock `axios.get` with `new Promise(() => {})` to keep the component in the pending state indefinitely
+- **Testing that skeleton is gone** (confirming loaded state): `await waitFor(() => expect(document.querySelectorAll(".animate-pulse")).toHaveLength(0))`
+- **Error state**: mock `axios.get` with `.mockRejectedValue(new Error(...))` and assert `screen.getByRole("alert")` — `ErrorAlert` renders with `role="alert"`
 
 ### E2E Tests
 - **Framework**: Playwright — always use the `e2e-test-writer` agent for writing E2E tests; never write Playwright tests directly
