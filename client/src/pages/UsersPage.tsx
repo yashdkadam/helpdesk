@@ -10,7 +10,7 @@ import UsersTable from "@/components/UsersTable";
 async function fetchUsers(): Promise<User[]> {
   const res = await axios.get<{ users: User[] }>("/api/users");
   return res.data.users;
-}
+} 
 
 export default function UsersPage() {
   const [showModal, setShowModal] = useState(false);

@@ -21,6 +21,12 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
   const data = validate(createUserSchema, req.body, res);
   if (!data) return;
 
+  const existing = await prisma.user.findUnique({ where: { email: data.email } });
+  if (existing) {
+    res.status(409).json({ error: "Email already in use" });
+    return;
+  }
+
   const result = await auth.api.signUpEmail({
     body: { name: data.name, email: data.email, password: data.password },
   });

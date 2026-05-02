@@ -1,4 +1,4 @@
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, fireEvent } from "@testing-library/react";
 import axios from "axios";
 import { vi, describe, test, expect, beforeEach } from "vitest";
 import UsersPage from "./UsersPage";
@@ -102,4 +102,28 @@ describe("UsersPage", () => {
       expect(screen.getByRole("alert")).toBeInTheDocument()
     );
   });
+
+  test("shows the create user dialog when 'New User' is clicked", () => {
+    vi.mocked(axios, { deep: true }).get.mockResolvedValue({ data: { users: [] } });
+    renderWithQuery(<UsersPage />);
+
+    fireEvent.click(screen.getByRole("button", { name: "New User" }));
+
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+  });
+
+  test("hides the dialog when Escape is pressed", async () => {
+    vi.mocked(axios, { deep: true }).get.mockResolvedValue({ data: { users: [] } });
+    renderWithQuery(<UsersPage />);
+
+    fireEvent.click(screen.getByRole("button", { name: "New User" }));
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+    fireEvent.keyDown(document.body, { key: "Escape" });
+
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+    );
+  });
+
 });
