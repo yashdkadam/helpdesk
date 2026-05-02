@@ -5,6 +5,7 @@ import { rateLimit } from "express-rate-limit";
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "./lib/auth";
 import { requireAuth } from "./middleware/require-auth";
+import usersRouter from "./routes/users";
 
 if (!process.env.BETTER_AUTH_SECRET || process.env.BETTER_AUTH_SECRET.startsWith("change-this")) {
   throw new Error("BETTER_AUTH_SECRET must be set to a random value");
@@ -46,6 +47,8 @@ app.get("/api/health", (_req, res) => {
 app.get("/api/me", requireAuth, (req, res) => {
   res.json({ user: req.user });
 });
+
+app.use("/api/users", usersRouter);
 
 async function boot() {
   app.listen(PORT, () => {
