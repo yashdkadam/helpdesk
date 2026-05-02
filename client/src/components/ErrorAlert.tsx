@@ -19,7 +19,7 @@ export default function ErrorAlert({ message, error, fallback }: Props) {
   }
   if (!text) return null;
   return (
-    <div className="rounded-md bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive">
+    <div role="alert" className="rounded-md bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive">
       {text}
     </div>
   );

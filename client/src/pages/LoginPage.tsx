@@ -55,7 +55,7 @@ export default function LoginPage() {
             <div className="flex items-center justify-center size-12 rounded-xl bg-primary text-primary-foreground mb-2">
               <LifeBuoy className="size-6" />
             </div>
-            <CardTitle className="text-2xl">Helpdesk</CardTitle>
+            <h1 className="text-2xl leading-none font-semibold">Helpdesk</h1>
             <CardDescription>Sign in to your account</CardDescription>
           </CardHeader>
 
