@@ -1,14 +1,16 @@
-import { Pencil } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import { type User } from "core/schemas/users";
+import { Role } from "core/constants/role.ts";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface Props {
   users: User[] | undefined;
   isPending: boolean;
   onEdit: (user: User) => void;
+  onDelete: (user: User) => void;
 }
 
-export default function UsersTable({ users, isPending, onEdit }: Props) {
+export default function UsersTable({ users, isPending, onEdit, onDelete }: Props) {
   if (isPending) {
     return (
       <div className="rounded-lg border overflow-hidden">
@@ -64,13 +66,24 @@ export default function UsersTable({ users, isPending, onEdit }: Props) {
                 {new Date(user.createdAt).toLocaleDateString()}
               </td>
               <td className="px-4 py-3">
-                <button
-                  onClick={() => onEdit(user)}
-                  className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground"
-                  aria-label="Edit user"
-                >
-                  <Pencil className="h-4 w-4" />
-                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => onEdit(user)}
+                    className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground"
+                    aria-label="Edit user"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
+                  {user.role !== Role.admin && (
+                    <button
+                      onClick={() => onDelete(user)}
+                      className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-destructive"
+                      aria-label="Delete user"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
               </td>
             </tr>
           ))}
@@ -82,7 +95,7 @@ export default function UsersTable({ users, isPending, onEdit }: Props) {
 
 function RoleBadge({ role }: { role: User["role"] }) {
   const styles =
-    role === "admin"
+    role === Role.admin
       ? "bg-primary/10 text-primary border-primary/20"
       : "bg-muted text-muted-foreground border-border";
   return (

@@ -20,6 +20,7 @@ model User {
   image         String?
   createdAt     DateTime
   updatedAt     DateTime
+  deletedAt     DateTime?
   role          Role      @default(agent)
   sessions      Session[]
   accounts      Account[]

@@ -1,6 +1,7 @@
 import { screen, waitFor, fireEvent } from "@testing-library/react";
 import axios from "axios";
 import { vi, describe, test, expect, beforeEach } from "vitest";
+import { Role } from "core/constants/role.ts";
 import UsersPage from "./UsersPage";
 import { renderWithQuery } from "@/test/render";
 
@@ -11,14 +12,14 @@ const USERS = [
     id: "1",
     name: "Alice Admin",
     email: "alice@example.com",
-    role: "admin" as const,
+    role: Role.admin,
     createdAt: new Date("2024-01-15"),
   },
   {
     id: "2",
     name: "Bob Agent",
     email: "bob@example.com",
-    role: "agent" as const,
+    role: Role.agent,
     createdAt: new Date("2024-03-20"),
   },
 ];
@@ -80,9 +81,9 @@ describe("UsersPage", () => {
     vi.mocked(axios, { deep: true }).get.mockResolvedValue({ data: { users: USERS } });
     renderWithQuery(<UsersPage />);
     await waitFor(() =>
-      expect(screen.getByText("admin")).toBeInTheDocument()
+      expect(screen.getByText(Role.admin)).toBeInTheDocument()
     );
-    expect(screen.getByText("agent")).toBeInTheDocument();
+    expect(screen.getByText(Role.agent)).toBeInTheDocument();
   });
 
   test("renders only the header row when users list is empty", async () => {

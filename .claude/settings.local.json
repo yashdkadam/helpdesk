@@ -51,7 +51,8 @@
       "PowerShell(Get-ChildItem -Path D:\\\\claude-code\\\\helpdesk\\\\e2e -Recurse -Force | Where-Object { !$_.PSIsContainer })",
       "PowerShell(psql *)",
       "Bash(Get-ChildItem *)",
-      "Bash(bunx shadcn@latest add dialog --yes)"
+      "Bash(bunx shadcn@latest add dialog --yes)",
+      "Bash(bunx shadcn@latest add alert-dialog --yes)"
     ]
   }
 }

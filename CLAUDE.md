@@ -48,7 +48,7 @@ The client proxies `/api/*` requests to the server via Vite config (target is co
 - Validate request bodies in route handlers using the shared `validate` helper (`import { validate } from "../lib/validate"`). It takes a Zod schema, the request body, and the `res` object — returns parsed data or `null` (after sending a 400 response).
 - Parse and validate numeric ID route params with the shared `parseId` helper (`import { parseId } from "../lib/parse-id"`). Returns a positive integer or `null` for invalid values.
 - Do not wrap async route handlers in try/catch — Express 5 automatically catches rejected promises
-- Use the shared `Role` constant instead of hardcoded `"admin"` / `"agent"` strings (import from `core/constants/role.ts`, e.g. `import { Role } from "core/constants/role.ts"`)
+- Use the shared `Role` constant instead of hardcoded `"admin"` / `"agent"` strings in **both client and server** (import from `core/constants/role.ts`, e.g. `import { Role } from "core/constants/role.ts"`). Use `Role.admin` / `Role.agent` for all role comparisons, conditionals, and test fixture data — never use the raw string literals
 - Define shared constants and domain types in `core/constants/` as union types (not `enum` — the client has `erasableSyntaxOnly` enabled). Use `as const` objects when runtime access is needed (e.g. `Role`), and plain union types when only type checking is needed (e.g. `type TicketStatus = "open" | "resolved" | "closed"`).
 - Use React Hook Form with Zod resolver for client-side form validation (`useForm` + `standardSchemaResolver` from `@hookform/resolvers/standard-schema`)
 - Use Axios for HTTP requests (not `fetch`)
