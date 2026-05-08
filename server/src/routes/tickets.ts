@@ -1,15 +1,16 @@
 import { Router } from "express";
-import { prisma } from "../lib/prisma";
+import { prisma, Prisma } from "../lib/prisma";
 import { requireAuth } from "../middleware/require-auth";
 import { validate } from "../lib/validate";
 import { sendClassifyTicketJob } from "../lib/queue";
-import { createTicketSchema, ticketSortSchema, ticketFilterSchema } from "core/schemas/tickets";
+import { createTicketSchema, ticketSortSchema, ticketFilterSchema, ticketPaginationSchema } from "core/schemas/tickets";
 
 const router = Router();
 
 router.get("/", requireAuth, async (req, res) => {
   const { sortBy, sortOrder } = ticketSortSchema.safeParse(req.query).data ?? {};
   const { search, status, category } = ticketFilterSchema.safeParse(req.query).data ?? {};
+  const { page, pageSize } = ticketPaginationSchema.parse(req.query);
 
   const field = sortBy ?? "createdAt";
   const order = sortOrder ?? "desc";
@@ -19,15 +20,23 @@ router.get("/", requireAuth, async (req, res) => {
       ? { category: { sort: order, nulls: "last" as const } }
       : { [field]: order };
 
-  const tickets = await prisma.ticket.findMany({
-    where: {
-      status: status ? status : { notIn: ["new", "processing"] },
-      ...(category && { category }),
-      ...(search && { subject: { contains: search, mode: "insensitive" } }),
-    },
-    orderBy,
-  });
-  res.json({ tickets });
+  const where: Prisma.TicketWhereInput = {
+    status: status ?? { notIn: ["new", "processing"] as const },
+    ...(category && { category }),
+    ...(search && { subject: { contains: search, mode: Prisma.QueryMode.insensitive } }),
+  };
+
+  const [tickets, total] = await prisma.$transaction([
+    prisma.ticket.findMany({
+      where,
+      orderBy,
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+    prisma.ticket.count({ where }),
+  ]);
+
+  res.json({ tickets, total, page, pageSize });
 });
 
 router.post("/", requireAuth, async (req, res) => {
