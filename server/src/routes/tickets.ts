@@ -2,6 +2,7 @@ import { Router } from "express";
 import { prisma, Prisma } from "../lib/prisma";
 import { requireAuth } from "../middleware/require-auth";
 import { validate } from "../lib/validate";
+import { parseId } from "../lib/parse-id";
 import { sendClassifyTicketJob } from "../lib/queue";
 import { createTicketSchema, ticketSortSchema, ticketFilterSchema, ticketPaginationSchema } from "core/schemas/tickets";
 
@@ -37,6 +38,22 @@ router.get("/", requireAuth, async (req, res) => {
   ]);
 
   res.json({ tickets, total, page, pageSize });
+});
+
+router.get("/:id", requireAuth, async (req, res) => {
+  const id = parseId(req.params.id);
+  if (!id) {
+    res.status(400).json({ error: "Invalid ticket ID" });
+    return;
+  }
+
+  const ticket = await prisma.ticket.findUnique({ where: { id } });
+  if (!ticket) {
+    res.status(404).json({ error: "Ticket not found" });
+    return;
+  }
+
+  res.json(ticket);
 });
 
 router.post("/", requireAuth, async (req, res) => {

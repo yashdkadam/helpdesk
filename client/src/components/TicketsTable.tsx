@@ -8,6 +8,7 @@ import {
   type Column,
 } from "@tanstack/react-table";
 import { ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
+import { Link } from "react-router-dom";
 import { type Ticket } from "core/schemas/tickets";
 import { TicketStatus, TicketCategory, categoryLabel } from "core/constants/ticket.ts";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -32,7 +33,14 @@ const columns: ColumnDef<Ticket>[] = [
     accessorKey: "subject",
     header: "Subject",
     enableSorting: true,
-    cell: ({ row }) => <span className="font-medium">{row.original.subject}</span>,
+    cell: ({ row }) => (
+      <Link
+        to={`/tickets/${row.original.id}`}
+        className="font-medium hover:underline"
+      >
+        {row.original.subject}
+      </Link>
+    ),
   },
   {
     id: "senderName",
