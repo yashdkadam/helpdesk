@@ -3,14 +3,23 @@ import { prisma } from "../lib/prisma";
 import { requireAuth } from "../middleware/require-auth";
 import { validate } from "../lib/validate";
 import { sendClassifyTicketJob } from "../lib/queue";
-import { createTicketSchema } from "core/schemas/tickets";
+import { createTicketSchema, ticketSortSchema } from "core/schemas/tickets";
 
 const router = Router();
 
-router.get("/", requireAuth, async (_req, res) => {
+router.get("/", requireAuth, async (req, res) => {
+  const { sortBy, sortOrder } = ticketSortSchema.safeParse(req.query).data ?? {};
+  const field = sortBy ?? "createdAt";
+  const order = sortOrder ?? "desc";
+
+  const orderBy =
+    field === "category"
+      ? { category: { sort: order, nulls: "last" as const } }
+      : { [field]: order };
+
   const tickets = await prisma.ticket.findMany({
     where: { status: { notIn: ["new", "processing"] } },
-    orderBy: { createdAt: "desc" },
+    orderBy,
   });
   res.json({ tickets });
 });
