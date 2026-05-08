@@ -5,7 +5,10 @@ import { rateLimit } from "express-rate-limit";
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "./lib/auth";
 import { requireAuth } from "./middleware/require-auth";
+import { startQueue, stopQueue } from "./lib/queue";
 import usersRouter from "./routes/users";
+import ticketsRouter from "./routes/tickets";
+import webhooksRouter from "./routes/webhooks";
 
 if (!process.env.BETTER_AUTH_SECRET || process.env.BETTER_AUTH_SECRET.startsWith("change-this")) {
   throw new Error("BETTER_AUTH_SECRET must be set to a random value");
@@ -49,11 +52,25 @@ app.get("/api/me", requireAuth, (req, res) => {
 });
 
 app.use("/api/users", usersRouter);
+app.use("/api/tickets", ticketsRouter);
+app.use("/api/webhooks", webhooksRouter);
 
 async function boot() {
-  app.listen(PORT, () => {
+  await startQueue();
+
+  const server = app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });
+
+  async function shutdown(signal: string) {
+    console.log(`[${signal}] shutting down...`);
+    server.close();
+    await stopQueue();
+    process.exit(0);
+  }
+
+  process.on("SIGTERM", () => shutdown("SIGTERM"));
+  process.on("SIGINT", () => shutdown("SIGINT"));
 }
 
 boot();

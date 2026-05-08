@@ -1,11 +1,19 @@
-export type TicketStatus = "new" | "processing" | "open" | "resolved" | "closed";
-export type TicketCategory =
-  | "general_question"
-  | "technical_question"
-  | "refund_request";
+export enum TicketStatus {
+  new = "new",
+  processing = "processing",
+  open = "open",
+  resolved = "resolved",
+  closed = "closed",
+}
+
+export enum TicketCategory {
+  general_question = "general_question",
+  technical_question = "technical_question",
+  refund_request = "refund_request",
+}
 
 export const categoryLabel: Record<TicketCategory, string> = {
-  general_question: "General Question",
-  technical_question: "Technical Question",
-  refund_request: "Refund Request",
+  [TicketCategory.general_question]: "General Question",
+  [TicketCategory.technical_question]: "Technical Question",
+  [TicketCategory.refund_request]: "Refund Request",
 };
