@@ -3,12 +3,14 @@ import { prisma } from "../lib/prisma";
 import { requireAuth } from "../middleware/require-auth";
 import { validate } from "../lib/validate";
 import { sendClassifyTicketJob } from "../lib/queue";
-import { createTicketSchema, ticketSortSchema } from "core/schemas/tickets";
+import { createTicketSchema, ticketSortSchema, ticketFilterSchema } from "core/schemas/tickets";
 
 const router = Router();
 
 router.get("/", requireAuth, async (req, res) => {
   const { sortBy, sortOrder } = ticketSortSchema.safeParse(req.query).data ?? {};
+  const { search, status, category } = ticketFilterSchema.safeParse(req.query).data ?? {};
+
   const field = sortBy ?? "createdAt";
   const order = sortOrder ?? "desc";
 
@@ -18,7 +20,11 @@ router.get("/", requireAuth, async (req, res) => {
       : { [field]: order };
 
   const tickets = await prisma.ticket.findMany({
-    where: { status: { notIn: ["new", "processing"] } },
+    where: {
+      status: status ? status : { notIn: ["new", "processing"] },
+      ...(category && { category }),
+      ...(search && { subject: { contains: search, mode: "insensitive" } }),
+    },
     orderBy,
   });
   res.json({ tickets });

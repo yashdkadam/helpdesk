@@ -40,3 +40,11 @@ export const ticketSortSchema = z.object({
 });
 
 export type TicketSortParams = z.infer<typeof ticketSortSchema>;
+
+export const ticketFilterSchema = z.object({
+  search: z.string().optional(),
+  status: z.nativeEnum(TicketStatus).optional(),
+  category: z.nativeEnum(TicketCategory).optional(),
+});
+
+export type TicketFilterParams = z.infer<typeof ticketFilterSchema>;
