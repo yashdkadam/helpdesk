@@ -111,7 +111,7 @@ The client proxies `/api/*` requests to the server via Vite config (target is co
 
 ## Testing
 
-- **Prefer component tests** for the majority of coverage (rendering, states, data display, error handling). Reserve E2E tests for things that truly need a real browser + server: navigation, auth redirects, and full-stack integration flows (e.g. webhook creates data that appears in the UI).
+- **Default to component tests** for all coverage — rendering, states, data display, error handling, form validation, API call verification. Only reach for E2E when a component test physically cannot cover the scenario.
 
 ### Component Tests
 - **Framework**: Vitest + React Testing Library
@@ -132,5 +132,5 @@ The client proxies `/api/*` requests to the server via Vite config (target is co
 - **Framework**: Playwright — always use the `e2e-test-writer` agent for writing E2E tests; never write Playwright tests directly
 - Run with `bun run test:e2e` from root
 - Full setup, port config, seeded credentials, and test conventions are documented in the `e2e-test-writer` agent (`e2e/.claude/agents/e2e-test-writer.md`)
-- **When to use**: only for scenarios that genuinely require a real browser + server — auth redirects, cross-page navigation, data persistence after reload, full-stack integration flows
-- **When NOT to use**: rendering, component states, form validation, error messages, API call verification — use component tests for these
+- **When to use (narrow list)**: auth redirects, cross-page navigation, session persistence across reloads, full-stack integration flows where a real server + browser are both required (e.g. webhook POST → data appears in UI)
+- **When NOT to use (everything else)**: rendering, component states, loading/error states, form validation, error messages, API call verification — write a component test instead; do not write an E2E test for these

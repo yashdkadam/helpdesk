@@ -7,7 +7,7 @@ boss.on("error", (err) => console.error("[pg-boss]", err));
 const CLASSIFY_TICKET_QUEUE = "classify-ticket";
 
 interface ClassifyTicketJobData {
-  ticketId: string;
+  ticketId: number;
 }
 
 export async function startQueue(): Promise<void> {
@@ -30,7 +30,7 @@ export async function stopQueue(): Promise<void> {
   await boss.stop();
 }
 
-export async function sendClassifyTicketJob(ticketId: string): Promise<void> {
+export async function sendClassifyTicketJob(ticketId: number): Promise<void> {
   await boss.send(
     CLASSIFY_TICKET_QUEUE,
     { ticketId },

@@ -7,6 +7,14 @@ import { createTicketSchema } from "core/schemas/tickets";
 
 const router = Router();
 
+router.get("/", requireAuth, async (_req, res) => {
+  const tickets = await prisma.ticket.findMany({
+    where: { status: { notIn: ["new", "processing"] } },
+    orderBy: { createdAt: "desc" },
+  });
+  res.json({ tickets });
+});
+
 router.post("/", requireAuth, async (req, res) => {
   const data = validate(createTicketSchema, req.body, res);
   if (!data) return;

@@ -2,6 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 import {
   TEST_DATABASE_URL,
   TEST_AUTH_SECRET,
+  TEST_WEBHOOK_SECRET,
   SERVER_URL,
   CLIENT_URL,
   SERVER_PORT,
@@ -33,6 +34,7 @@ export default defineConfig({
         BETTER_AUTH_SECRET: TEST_AUTH_SECRET,
         BETTER_AUTH_URL: SERVER_URL,
         CLIENT_URL: CLIENT_URL,
+        WEBHOOK_SECRET: TEST_WEBHOOK_SECRET,
         NODE_ENV: "test",
       },
     },

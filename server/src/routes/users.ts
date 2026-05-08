@@ -42,7 +42,7 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
 });
 
 router.patch("/:id", requireAuth, requireAdmin, async (req, res) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
 
   const data = validate(updateUserSchema, req.body, res);
   if (!data) return;
@@ -78,7 +78,7 @@ router.patch("/:id", requireAuth, requireAdmin, async (req, res) => {
 });
 
 router.delete("/:id", requireAuth, requireAdmin, async (req, res) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
 
   const user = await prisma.user.findUnique({ where: { id, deletedAt: null } });
   if (!user) {

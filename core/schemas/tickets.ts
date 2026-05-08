@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { TicketStatus, TicketCategory } from "../constants/ticket.ts";
 
 export const createTicketSchema = z.object({
   subject: z.string().min(1),
@@ -8,3 +9,17 @@ export const createTicketSchema = z.object({
 });
 
 export type CreateTicketInput = z.infer<typeof createTicketSchema>;
+
+export const ticketSchema = z.object({
+  id: z.number(),
+  subject: z.string(),
+  body: z.string(),
+  senderEmail: z.string(),
+  senderName: z.string(),
+  status: z.nativeEnum(TicketStatus),
+  category: z.nativeEnum(TicketCategory).nullable(),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
+});
+
+export type Ticket = z.infer<typeof ticketSchema>;

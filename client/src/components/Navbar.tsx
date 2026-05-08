@@ -18,6 +18,9 @@ export default function Navbar() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
         <div className="flex items-center gap-6">
           <Link to="/" className="font-semibold text-sm">Helpdesk</Link>
+          <Link to="/tickets" className="text-sm text-muted-foreground hover:text-foreground">
+            Tickets
+          </Link>
           {session?.user.role === Role.admin && (
             <Link to="/users" className="text-sm text-muted-foreground hover:text-foreground">
               Users
