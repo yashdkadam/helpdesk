@@ -19,6 +19,15 @@ router.get("/", requireAuth, requireAdmin, async (_req, res) => {
   res.json({ users });
 });
 
+router.get("/agents", requireAuth, async (_req, res) => {
+  const users = await prisma.user.findMany({
+    where: { deletedAt: null },
+    select: { id: true, name: true, email: true },
+    orderBy: { name: "asc" },
+  });
+  res.json({ users });
+});
+
 router.post("/", requireAuth, requireAdmin, async (req, res) => {
   const data = validate(createUserSchema, req.body, res);
   if (!data) return;

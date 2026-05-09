@@ -4,7 +4,9 @@ import { requireAuth } from "../middleware/require-auth";
 import { validate } from "../lib/validate";
 import { parseId } from "../lib/parse-id";
 import { sendClassifyTicketJob } from "../lib/queue";
-import { createTicketSchema, ticketSortSchema, ticketFilterSchema, ticketPaginationSchema } from "core/schemas/tickets";
+import { createTicketSchema, ticketSortSchema, ticketFilterSchema, ticketPaginationSchema, assignTicketSchema, updateTicketSchema } from "core/schemas/tickets";
+
+const ASSIGNEE_SELECT = { id: true, name: true, email: true } as const;
 
 const router = Router();
 
@@ -33,6 +35,7 @@ router.get("/", requireAuth, async (req, res) => {
       orderBy,
       skip: (page - 1) * pageSize,
       take: pageSize,
+      include: { assignedTo: { select: ASSIGNEE_SELECT } },
     }),
     prisma.ticket.count({ where }),
   ]);
@@ -47,13 +50,74 @@ router.get("/:id", requireAuth, async (req, res) => {
     return;
   }
 
-  const ticket = await prisma.ticket.findUnique({ where: { id } });
+  const ticket = await prisma.ticket.findUnique({
+    where: { id },
+    include: { assignedTo: { select: ASSIGNEE_SELECT } },
+  });
   if (!ticket) {
     res.status(404).json({ error: "Ticket not found" });
     return;
   }
 
   res.json(ticket);
+});
+
+router.patch("/:id", requireAuth, async (req, res) => {
+  const id = parseId(req.params.id);
+  if (!id) {
+    res.status(400).json({ error: "Invalid ticket ID" });
+    return;
+  }
+
+  const data = validate(updateTicketSchema, req.body, res);
+  if (!data) return;
+
+  const ticket = await prisma.ticket.findUnique({ where: { id } });
+  if (!ticket) {
+    res.status(404).json({ error: "Ticket not found" });
+    return;
+  }
+
+  const updated = await prisma.ticket.update({
+    where: { id },
+    data,
+    include: { assignedTo: { select: ASSIGNEE_SELECT } },
+  });
+
+  res.json(updated);
+});
+
+router.patch("/:id/assign", requireAuth, async (req, res) => {
+  const id = parseId(req.params.id);
+  if (!id) {
+    res.status(400).json({ error: "Invalid ticket ID" });
+    return;
+  }
+
+  const data = validate(assignTicketSchema, req.body, res);
+  if (!data) return;
+
+  const ticket = await prisma.ticket.findUnique({ where: { id } });
+  if (!ticket) {
+    res.status(404).json({ error: "Ticket not found" });
+    return;
+  }
+
+  if (data.assignedToId !== null) {
+    const user = await prisma.user.findUnique({ where: { id: data.assignedToId, deletedAt: null } });
+    if (!user) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+  }
+
+  const updated = await prisma.ticket.update({
+    where: { id },
+    data: { assignedToId: data.assignedToId },
+    include: { assignedTo: { select: ASSIGNEE_SELECT } },
+  });
+
+  res.json(updated);
 });
 
 router.post("/", requireAuth, async (req, res) => {

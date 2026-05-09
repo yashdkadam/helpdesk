@@ -56,7 +56,9 @@
       "Bash(grep \"\\\\.ts$\")",
       "Bash(git -C \"D:\\\\claude-code\\\\helpdesk\" log --oneline --all)",
       "Bash(git *)",
-      "PowerShell(Invoke-RestMethod -Uri \"http://localhost:3000/api/tickets\" -Method Post -ContentType \"application/json\" -Body '{\"subject\":\"Test ticket\",\"body\":\"Hello I need help\",\"fromEmail\":\"user@example.com\",\"fromName\":\"Test User\"}')"
+      "PowerShell(Invoke-RestMethod -Uri \"http://localhost:3000/api/tickets\" -Method Post -ContentType \"application/json\" -Body '{\"subject\":\"Test ticket\",\"body\":\"Hello I need help\",\"fromEmail\":\"user@example.com\",\"fromName\":\"Test User\"}')",
+      "PowerShell(Get-NetTCPConnection *)",
+      "PowerShell(Stop-Process *)"
     ]
   }
 }

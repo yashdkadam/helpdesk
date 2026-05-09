@@ -10,6 +10,14 @@ export const createTicketSchema = z.object({
 
 export type CreateTicketInput = z.infer<typeof createTicketSchema>;
 
+export const ticketAssigneeSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  email: z.string(),
+});
+
+export type TicketAssignee = z.infer<typeof ticketAssigneeSchema>;
+
 export const ticketSchema = z.object({
   id: z.number(),
   subject: z.string(),
@@ -18,11 +26,22 @@ export const ticketSchema = z.object({
   senderName: z.string(),
   status: z.nativeEnum(TicketStatus),
   category: z.nativeEnum(TicketCategory).nullable(),
+  assignedToId: z.string().nullable(),
+  assignedTo: ticketAssigneeSchema.nullable().optional(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
 });
 
 export type Ticket = z.infer<typeof ticketSchema>;
+
+export const assignTicketSchema = z.object({
+  assignedToId: z.string().nullable(),
+});
+
+export const updateTicketSchema = z.object({
+  status: z.nativeEnum(TicketStatus).optional(),
+  category: z.nativeEnum(TicketCategory).nullable().optional(),
+});
 
 export const SORTABLE_TICKET_FIELDS = [
   "subject",

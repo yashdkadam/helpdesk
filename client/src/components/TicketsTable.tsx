@@ -74,6 +74,17 @@ const columns: ColumnDef<Ticket>[] = [
       ),
   },
   {
+    id: "assignedTo",
+    header: "Assigned to",
+    enableSorting: false,
+    cell: ({ row }) =>
+      row.original.assignedTo ? (
+        <span className="text-foreground">{row.original.assignedTo.name}</span>
+      ) : (
+        <span className="text-muted-foreground">—</span>
+      ),
+  },
+  {
     id: "createdAt",
     accessorKey: "createdAt",
     header: "Received",
@@ -120,6 +131,7 @@ export default function TicketsTable({ tickets, isPending, sorting, onSortingCha
                 <td className="px-4 py-3"><Skeleton className="h-4 w-36" /></td>
                 <td className="px-4 py-3"><Skeleton className="h-5 w-16 rounded-md" /></td>
                 <td className="px-4 py-3"><Skeleton className="h-5 w-28 rounded-md" /></td>
+                <td className="px-4 py-3"><Skeleton className="h-4 w-28" /></td>
                 <td className="px-4 py-3"><Skeleton className="h-4 w-24" /></td>
               </tr>
             ))}
