@@ -88,6 +88,7 @@ export const ticketReplySchema = z.object({
   authorId: z.string().nullable(),
   author: z.object({ id: z.string(), name: z.string(), email: z.string() }).nullable(),
   body: z.string(),
+  bodyHtml: z.string().nullable(),
   createdAt: z.coerce.date(),
 });
 
