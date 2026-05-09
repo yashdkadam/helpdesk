@@ -20,7 +20,7 @@ import {
 import ErrorAlert from "@/components/ErrorAlert";
 import ErrorMessage from "@/components/ErrorMessage";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Sparkles } from "lucide-react";
 
 const UNASSIGNED = "__unassigned__";
 const NO_CATEGORY = "__none__";
@@ -77,10 +77,14 @@ export default function TicketDetailPage() {
     register,
     handleSubmit,
     reset,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<CreateTicketReplyInput>({
     resolver: standardSchemaResolver(createTicketReplySchema),
   });
+
+  const replyBody = watch("body", "");
 
   const replyMutation = useMutation({
     mutationFn: (data: CreateTicketReplyInput) =>
@@ -88,6 +92,14 @@ export default function TicketDetailPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["ticket-replies", id] });
       reset();
+    },
+  });
+
+  const polishMutation = useMutation({
+    mutationFn: (data: CreateTicketReplyInput) =>
+      axios.post<{ polished: string }>(`/api/tickets/${id}/polish-reply`, data).then((r) => r.data),
+    onSuccess: ({ polished }) => {
+      setValue("body", polished, { shouldValidate: true });
     },
   });
 
@@ -169,9 +181,23 @@ export default function TicketDetailPage() {
                     />
                     {errors.body && <ErrorMessage message={errors.body.message} />}
                   </div>
-                  <Button type="submit" disabled={replyMutation.isPending}>
-                    {replyMutation.isPending ? "Sending…" : "Send Reply"}
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={!replyBody?.trim() || polishMutation.isPending || replyMutation.isPending}
+                      onClick={() => polishMutation.mutate({ body: replyBody })}
+                    >
+                      <Sparkles className="h-4 w-4 mr-1.5" />
+                      {polishMutation.isPending ? "Polishing…" : "Polish"}
+                    </Button>
+                    <Button type="submit" disabled={!replyBody?.trim() || replyMutation.isPending || polishMutation.isPending}>
+                      {replyMutation.isPending ? "Sending…" : "Send Reply"}
+                    </Button>
+                  </div>
+                  {polishMutation.error && (
+                    <ErrorAlert error={polishMutation.error} fallback="Failed to polish reply." />
+                  )}
                   {replyMutation.error && (
                     <ErrorAlert error={replyMutation.error} fallback="Failed to send reply." />
                   )}

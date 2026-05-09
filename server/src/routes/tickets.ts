@@ -5,6 +5,8 @@ import { validate } from "../lib/validate";
 import { parseId } from "../lib/parse-id";
 import { sendClassifyTicketJob } from "../lib/queue";
 import { createTicketSchema, ticketSortSchema, ticketFilterSchema, ticketPaginationSchema, assignTicketSchema, updateTicketSchema, createTicketReplySchema } from "core/schemas/tickets";
+import { generateText } from "ai";
+import { freeModel } from "../lib/openrouter";
 
 const ASSIGNEE_SELECT = { id: true, name: true, email: true } as const;
 
@@ -171,6 +173,32 @@ router.post("/:id/replies", requireAuth, async (req, res) => {
   });
 
   res.status(201).json(reply);
+});
+
+router.post("/:id/polish-reply", requireAuth, async (req, res) => {
+  const id = parseId(req.params.id);
+  if (!id) {
+    res.status(400).json({ error: "Invalid ticket ID" });
+    return;
+  }
+
+  const data = validate(createTicketReplySchema, req.body, res);
+  if (!data) return;
+
+  const ticket = await prisma.ticket.findUnique({ where: { id } });
+  if (!ticket) {
+    res.status(404).json({ error: "Ticket not found" });
+    return;
+  }
+
+  const { text } = await generateText({
+    model: freeModel,
+    system:
+      "You are a professional customer support agent. Improve the draft reply to be clear, professional, empathetic, and concise. Return only the improved reply text — no preamble, no explanation.",
+    prompt: `Ticket subject: ${ticket.subject}\n\nCustomer message:\n${ticket.body}\n\nDraft reply:\n${data.body}`,
+  });
+
+  res.json({ polished: text });
 });
 
 router.post("/", requireAuth, async (req, res) => {
