@@ -74,3 +74,21 @@ export const ticketPaginationSchema = z.object({
 });
 
 export type TicketPaginationParams = z.infer<typeof ticketPaginationSchema>;
+
+export const createTicketReplySchema = z.object({
+  body: z.string().min(1),
+});
+
+export type CreateTicketReplyInput = z.infer<typeof createTicketReplySchema>;
+
+export const ticketReplySchema = z.object({
+  id: z.number(),
+  ticketId: z.number(),
+  senderType: z.enum(["agent", "customer"]),
+  authorId: z.string().nullable(),
+  author: z.object({ id: z.string(), name: z.string(), email: z.string() }).nullable(),
+  body: z.string(),
+  createdAt: z.coerce.date(),
+});
+
+export type TicketReply = z.infer<typeof ticketReplySchema>;

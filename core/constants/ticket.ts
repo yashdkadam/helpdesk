@@ -17,3 +17,6 @@ export const categoryLabel: Record<TicketCategory, string> = {
   [TicketCategory.technical_question]: "Technical Question",
   [TicketCategory.refund_request]: "Refund Request",
 };
+
+export const ReplySenderType = { agent: "agent", customer: "customer" } as const;
+export type ReplySenderTypeValue = (typeof ReplySenderType)[keyof typeof ReplySenderType];

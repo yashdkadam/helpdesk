@@ -4,7 +4,7 @@ import { requireAuth } from "../middleware/require-auth";
 import { validate } from "../lib/validate";
 import { parseId } from "../lib/parse-id";
 import { sendClassifyTicketJob } from "../lib/queue";
-import { createTicketSchema, ticketSortSchema, ticketFilterSchema, ticketPaginationSchema, assignTicketSchema, updateTicketSchema } from "core/schemas/tickets";
+import { createTicketSchema, ticketSortSchema, ticketFilterSchema, ticketPaginationSchema, assignTicketSchema, updateTicketSchema, createTicketReplySchema } from "core/schemas/tickets";
 
 const ASSIGNEE_SELECT = { id: true, name: true, email: true } as const;
 
@@ -118,6 +118,59 @@ router.patch("/:id/assign", requireAuth, async (req, res) => {
   });
 
   res.json(updated);
+});
+
+const REPLY_AUTHOR_SELECT = { id: true, name: true, email: true } as const;
+
+router.get("/:id/replies", requireAuth, async (req, res) => {
+  const id = parseId(req.params.id);
+  if (!id) {
+    res.status(400).json({ error: "Invalid ticket ID" });
+    return;
+  }
+
+  const ticket = await prisma.ticket.findUnique({ where: { id } });
+  if (!ticket) {
+    res.status(404).json({ error: "Ticket not found" });
+    return;
+  }
+
+  const replies = await prisma.ticketReply.findMany({
+    where: { ticketId: id },
+    orderBy: { createdAt: "asc" },
+    include: { author: { select: REPLY_AUTHOR_SELECT } },
+  });
+
+  res.json({ replies });
+});
+
+router.post("/:id/replies", requireAuth, async (req, res) => {
+  const id = parseId(req.params.id);
+  if (!id) {
+    res.status(400).json({ error: "Invalid ticket ID" });
+    return;
+  }
+
+  const data = validate(createTicketReplySchema, req.body, res);
+  if (!data) return;
+
+  const ticket = await prisma.ticket.findUnique({ where: { id } });
+  if (!ticket) {
+    res.status(404).json({ error: "Ticket not found" });
+    return;
+  }
+
+  const reply = await prisma.ticketReply.create({
+    data: {
+      ticketId: id,
+      senderType: "agent",
+      authorId: req.user!.id,
+      body: data.body,
+    },
+    include: { author: { select: REPLY_AUTHOR_SELECT } },
+  });
+
+  res.status(201).json(reply);
 });
 
 router.post("/", requireAuth, async (req, res) => {

@@ -1,11 +1,15 @@
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { type Ticket } from "core/schemas/tickets";
 import { type User } from "core/schemas/users";
-import { TicketStatus, TicketCategory, categoryLabel } from "core/constants/ticket.ts";
+import { type TicketReply, createTicketReplySchema, type CreateTicketReplyInput } from "core/schemas/tickets";
+import { TicketStatus, TicketCategory, categoryLabel, ReplySenderType } from "core/constants/ticket.ts";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -14,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import ErrorAlert from "@/components/ErrorAlert";
+import ErrorMessage from "@/components/ErrorMessage";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft } from "lucide-react";
 
@@ -43,6 +48,13 @@ export default function TicketDetailPage() {
         .then((r) => r.data),
   });
 
+  const { data: repliesData } = useQuery({
+    queryKey: ["ticket-replies", id],
+    queryFn: () =>
+      axios.get<{ replies: TicketReply[] }>(`/api/tickets/${id}/replies`).then((r) => r.data),
+    enabled: !!id,
+  });
+
   const updateMutation = useMutation({
     mutationFn: (patch: { status?: TicketStatus; category?: TicketCategory | null }) =>
       axios.patch<Ticket>(`/api/tickets/${id}`, patch).then((r) => r.data),
@@ -60,6 +72,26 @@ export default function TicketDetailPage() {
       queryClient.invalidateQueries({ queryKey: ["tickets"] });
     },
   });
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<CreateTicketReplyInput>({
+    resolver: standardSchemaResolver(createTicketReplySchema),
+  });
+
+  const replyMutation = useMutation({
+    mutationFn: (data: CreateTicketReplyInput) =>
+      axios.post<TicketReply>(`/api/tickets/${id}/replies`, data).then((r) => r.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["ticket-replies", id] });
+      reset();
+    },
+  });
+
+  const replies = repliesData?.replies ?? [];
 
   return (
     <div className="p-8 max-w-6xl mx-auto">
@@ -99,6 +131,51 @@ export default function TicketDetailPage() {
               <CardContent className="space-y-1">
                 <p className="text-sm font-medium">{ticket.senderName}</p>
                 <p className="text-sm text-muted-foreground">{ticket.senderEmail}</p>
+              </CardContent>
+            </Card>
+
+            {/* Reply thread */}
+            <div className="space-y-3">
+              <h2 className="text-sm font-medium text-muted-foreground">
+                Replies {replies.length > 0 && `(${replies.length})`}
+              </h2>
+
+              {replies.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No replies yet.</p>
+              ) : (
+                replies.map((reply) => (
+                  <ReplyCard key={reply.id} reply={reply} senderName={ticket.senderName} />
+                ))
+              )}
+            </div>
+
+            {/* Reply form */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Reply</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form
+                  onSubmit={handleSubmit((data) => replyMutation.mutate(data))}
+                  className="space-y-3"
+                >
+                  <div>
+                    <Textarea
+                      {...register("body")}
+                      placeholder="Write a reply..."
+                      rows={4}
+                      disabled={replyMutation.isPending}
+                      aria-invalid={!!errors.body}
+                    />
+                    {errors.body && <ErrorMessage message={errors.body.message} />}
+                  </div>
+                  <Button type="submit" disabled={replyMutation.isPending}>
+                    {replyMutation.isPending ? "Sending…" : "Send Reply"}
+                  </Button>
+                  {replyMutation.error && (
+                    <ErrorAlert error={replyMutation.error} fallback="Failed to send reply." />
+                  )}
+                </form>
               </CardContent>
             </Card>
 
@@ -195,6 +272,23 @@ export default function TicketDetailPage() {
   );
 }
 
+function ReplyCard({ reply, senderName }: { reply: TicketReply; senderName: string }) {
+  const isAgent = reply.senderType === ReplySenderType.agent;
+  const displayName = isAgent ? (reply.author?.name ?? "Agent") : senderName;
+
+  return (
+    <div className={`rounded-lg border p-4 space-y-2 ${isAgent ? "bg-muted/40" : ""}`}>
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-medium">{displayName}</span>
+        <span className="text-xs text-muted-foreground">
+          {new Date(reply.createdAt).toLocaleString()}
+        </span>
+      </div>
+      <p className="text-sm whitespace-pre-wrap">{reply.body}</p>
+    </div>
+  );
+}
+
 function TicketDetailSkeleton() {
   return (
     <div className="grid grid-cols-[1fr_280px] gap-8 items-start">
@@ -205,6 +299,7 @@ function TicketDetailSkeleton() {
         </div>
         <Skeleton className="h-40 w-full rounded-lg" />
         <Skeleton className="h-24 w-full rounded-lg" />
+        <Skeleton className="h-32 w-full rounded-lg" />
       </div>
       <div className="space-y-4">
         <Skeleton className="h-40 w-full rounded-lg" />
