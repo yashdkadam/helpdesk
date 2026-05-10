@@ -19,6 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import ErrorAlert from "@/components/ErrorAlert";
+import Navbar from "@/components/Navbar";
 import TicketsTable from "@/components/TicketsTable";
 
 const PAGE_SIZE = 10;
@@ -64,7 +65,9 @@ export default function TicketsPage() {
   }
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <main className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-8">
       <h1 className="text-2xl font-semibold mb-4">Tickets</h1>
 
       <div className="flex items-center gap-3 mb-6">
@@ -165,6 +168,7 @@ export default function TicketsPage() {
           </div>
         </div>
       )}
+      </main>
     </div>
   );
 }

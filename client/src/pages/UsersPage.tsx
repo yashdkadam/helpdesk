@@ -3,6 +3,7 @@ import axios from "axios";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { type User } from "core/schemas/users";
 import ErrorAlert from "@/components/ErrorAlert";
+import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import UserFormModal from "@/components/UserFormModal";
 import UsersTable from "@/components/UsersTable";
@@ -48,7 +49,9 @@ export default function UsersPage() {
   const deletingUser = dialog?.mode === "delete" ? dialog.user : null;
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <main className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold">Users</h1>
         <Button onClick={() => setDialog({ mode: "create" })}>New User</Button>
@@ -92,6 +95,7 @@ export default function UsersPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      </main>
     </div>
   );
 }
