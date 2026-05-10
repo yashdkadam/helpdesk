@@ -22,7 +22,7 @@ Helpdesk solves this by putting AI in the loop: every inbound ticket is automati
 
 ![Users](public/users.png)
 
-![Results](public/result.png)
+![Results](public/result.PNG)
 
 ---
 
