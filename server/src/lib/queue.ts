@@ -8,6 +8,7 @@ const boss = new PgBoss(process.env.DATABASE_URL!);
 boss.on("error", (err) => console.error("[pg-boss]", err));
 
 const CLASSIFY_TICKET_QUEUE = "classify-ticket";
+const AUTO_RESOLVE_TICKET_QUEUE = "auto-resolve-ticket";
 
 const VALID_CATEGORIES: TicketCategory[] = [
   "general_question",
@@ -19,9 +20,14 @@ interface ClassifyTicketJobData {
   ticketId: number;
 }
 
+interface AutoResolveTicketJobData {
+  ticketId: number;
+}
+
 export async function startQueue(): Promise<void> {
   await boss.start();
   await boss.createQueue(CLASSIFY_TICKET_QUEUE);
+  await boss.createQueue(AUTO_RESOLVE_TICKET_QUEUE);
 
   await boss.work<ClassifyTicketJobData>(CLASSIFY_TICKET_QUEUE, async ([job]) => {
     const { ticketId } = job.data;
@@ -59,10 +65,62 @@ Reply with ONLY the category name — nothing else.`,
 
     await prisma.ticket.update({
       where: { id: ticketId },
-      data: { status: "open", ...(category && { category }) },
+      data: { ...(category && { category }) },
     });
 
     console.log(`[classify-ticket] ticket ${ticketId} → category: ${category ?? "none"}`);
+
+    await boss.send(
+      AUTO_RESOLVE_TICKET_QUEUE,
+      { ticketId },
+      { retryLimit: 3, retryDelay: 30, retryBackoff: true }
+    );
+  });
+
+  await boss.work<AutoResolveTicketJobData>(AUTO_RESOLVE_TICKET_QUEUE, async ([job]) => {
+    const { ticketId } = job.data;
+
+    const ticket = await prisma.ticket.findUnique({ where: { id: ticketId } });
+    if (!ticket) return;
+
+    let resolved = false;
+    try {
+      const { text } = await generateText({
+        model: freeModel,
+        system: `You are a customer support agent. Try to resolve the support ticket automatically with a helpful reply.
+If you can fully resolve it, respond with valid JSON: {"resolved": true, "reply": "<your full reply>"}
+If the ticket requires human attention (e.g. refund requests, account-specific issues, or anything you cannot answer completely), respond with valid JSON: {"resolved": false}
+Respond with ONLY the JSON — no markdown, no preamble.`,
+        prompt: `Subject: ${ticket.subject}\n\nMessage:\n${ticket.body}`,
+      });
+
+      const json = JSON.parse(text.trim());
+      if (json.resolved === true && typeof json.reply === "string" && json.reply.trim()) {
+        await prisma.ticketReply.create({
+          data: {
+            ticketId,
+            senderType: "agent",
+            body: json.reply.trim(),
+          },
+        });
+        await prisma.ticket.update({
+          where: { id: ticketId },
+          data: { status: "resolved" },
+        });
+        resolved = true;
+      }
+    } catch (err) {
+      console.error("[auto-resolve-ticket] AI error:", err);
+    }
+
+    if (!resolved) {
+      await prisma.ticket.update({
+        where: { id: ticketId },
+        data: { status: "open" },
+      });
+    }
+
+    console.log(`[auto-resolve-ticket] ticket ${ticketId} → ${resolved ? "resolved" : "open"}`);
   });
 
   console.log("[queue] pg-boss started");
