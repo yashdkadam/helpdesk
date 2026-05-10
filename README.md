@@ -49,7 +49,6 @@ Helpdesk solves this by putting AI in the loop: every inbound ticket is automati
 | AI | OpenRouter API via Vercel AI SDK |
 | Job Queue | pg-boss (PostgreSQL-backed) |
 | Email | SendGrid (inbound webhook + outbound API) |
-| Deployment | Railway (single service — Express serves the built React app) |
 
 ---
 
