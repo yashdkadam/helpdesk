@@ -1,4 +1,6 @@
 import PgBoss from "pg-boss";
+import { readFile } from "fs/promises";
+import { join } from "path";
 import { generateText } from "ai";
 import { prisma } from "./prisma";
 import { freeModel } from "./openrouter";
@@ -25,6 +27,13 @@ interface AutoResolveTicketJobData {
 }
 
 export async function startQueue(): Promise<void> {
+  let knowledgeBase = "";
+  try {
+    knowledgeBase = await readFile(join(import.meta.dirname, "../../knowledge-base.md"), "utf-8");
+  } catch (err) {
+    console.warn("[queue] Could not read knowledge-base.md, continuing without it:", err);
+  }
+
   await boss.start();
   await boss.createQueue(CLASSIFY_TICKET_QUEUE);
   await boss.createQueue(AUTO_RESOLVE_TICKET_QUEUE);
@@ -85,12 +94,19 @@ Reply with ONLY the category name — nothing else.`,
 
     let resolved = false;
     try {
+      const firstName = ticket.senderName.trim().split(" ")[0];
       const { text } = await generateText({
         model: freeModel,
-        system: `You are a customer support agent. Try to resolve the support ticket automatically with a helpful reply.
-If you can fully resolve it, respond with valid JSON: {"resolved": true, "reply": "<your full reply>"}
-If the ticket requires human attention (e.g. refund requests, account-specific issues, or anything you cannot answer completely), respond with valid JSON: {"resolved": false}
-Respond with ONLY the JSON — no markdown, no preamble.`,
+        system: `You are a customer support agent named Yash for an online IT course platform. Try to resolve the support ticket automatically with a helpful, professional, and friendly reply.
+${knowledgeBase ? `\nUse the following knowledge base as your primary reference:\n\n${knowledgeBase}\n` : ""}
+Guidelines for your reply:
+- Address the customer by their first name: ${firstName}
+- Use a warm, professional, and customer-friendly tone
+- Use proper formatting: greet the customer, explain the solution clearly with numbered steps or bullet points where appropriate, and close warmly
+- Sign off as: Yash, Customer Support
+- If you can fully resolve it, respond with valid JSON: {"resolved": true, "reply": "<your full reply>"}
+- If the ticket requires human attention (e.g. refund requests, account-specific issues, or anything you cannot answer completely using the knowledge base), respond with valid JSON: {"resolved": false}
+Respond with ONLY the JSON — no markdown fences, no preamble.`,
         prompt: `Subject: ${ticket.subject}\n\nMessage:\n${ticket.body}`,
       });
 
@@ -105,7 +121,7 @@ Respond with ONLY the JSON — no markdown, no preamble.`,
         });
         await prisma.ticket.update({
           where: { id: ticketId },
-          data: { status: "resolved" },
+          data: { status: "auto_resolved" },
         });
         resolved = true;
       }
@@ -120,7 +136,7 @@ Respond with ONLY the JSON — no markdown, no preamble.`,
       });
     }
 
-    console.log(`[auto-resolve-ticket] ticket ${ticketId} → ${resolved ? "resolved" : "open"}`);
+    console.log(`[auto-resolve-ticket] ticket ${ticketId} → ${resolved ? "auto_resolved" : "open"}`);
   });
 
   console.log("[queue] pg-boss started");

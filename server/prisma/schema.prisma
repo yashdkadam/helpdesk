@@ -80,6 +80,7 @@ enum TicketStatus {
   open
   resolved
   closed
+  auto_resolved
 }
 
 enum TicketCategory {

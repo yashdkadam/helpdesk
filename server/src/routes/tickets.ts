@@ -26,7 +26,7 @@ router.get("/", requireAuth, async (req, res) => {
       : { [field]: order };
 
   const where: Prisma.TicketWhereInput = {
-    status: status ?? { notIn: ["new", "processing"] as const },
+    status: status ?? { notIn: ["new", "processing", "auto_resolved"] as const },
     ...(category && { category }),
     ...(search && { subject: { contains: search, mode: Prisma.QueryMode.insensitive } }),
   };

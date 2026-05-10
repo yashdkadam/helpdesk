@@ -4,6 +4,7 @@ export enum TicketStatus {
   open = "open",
   resolved = "resolved",
   closed = "closed",
+  auto_resolved = "auto_resolved",
 }
 
 export enum TicketCategory {
