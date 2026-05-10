@@ -4,6 +4,7 @@ import { requireAuth } from "../middleware/require-auth";
 import { validate } from "../lib/validate";
 import { parseId } from "../lib/parse-id";
 import { sendClassifyTicketJob } from "../lib/queue";
+import { sendReplyEmail } from "../lib/email";
 import { createTicketSchema, ticketSortSchema, ticketFilterSchema, ticketPaginationSchema, assignTicketSchema, updateTicketSchema, createTicketReplySchema } from "core/schemas/tickets";
 import { generateText } from "ai";
 import { freeModel } from "../lib/openrouter";
@@ -26,7 +27,7 @@ router.get("/", requireAuth, async (req, res) => {
       : { [field]: order };
 
   const where: Prisma.TicketWhereInput = {
-    status: status ?? { notIn: ["new", "processing", "auto_resolved"] as const },
+    status: status ?? { notIn: ["new", "processing"] as const },
     ...(category && { category }),
     ...(search && { subject: { contains: search, mode: Prisma.QueryMode.insensitive } }),
   };
@@ -171,6 +172,13 @@ router.post("/:id/replies", requireAuth, async (req, res) => {
     },
     include: { author: { select: REPLY_AUTHOR_SELECT } },
   });
+
+  sendReplyEmail({
+    to: ticket.senderEmail,
+    toName: ticket.senderName,
+    subject: ticket.subject,
+    body: data.body,
+  }).catch((err) => console.error("[email] Failed to send reply email:", err));
 
   res.status(201).json(reply);
 });

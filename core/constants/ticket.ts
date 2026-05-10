@@ -13,6 +13,15 @@ export enum TicketCategory {
   refund_request = "refund_request",
 }
 
+export const statusLabel: Record<TicketStatus, string> = {
+  [TicketStatus.new]: "New",
+  [TicketStatus.processing]: "Processing",
+  [TicketStatus.open]: "Open",
+  [TicketStatus.resolved]: "Resolved",
+  [TicketStatus.closed]: "Closed",
+  [TicketStatus.auto_resolved]: "AI Resolved",
+};
+
 export const categoryLabel: Record<TicketCategory, string> = {
   [TicketCategory.general_question]: "General Question",
   [TicketCategory.technical_question]: "Technical Question",

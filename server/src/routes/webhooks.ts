@@ -1,11 +1,16 @@
 import { Router } from "express";
 import multer from "multer";
+import Parse from "@sendgrid/inbound-mail-parser";
 import { prisma } from "../lib/prisma";
 import { sendClassifyTicketJob } from "../lib/queue";
 import { verifyWebhook } from "../middleware/verify-webhook";
 
 const router = Router();
 const parseMultipart = multer().none();
+
+function cleanSubject(subject: string): string {
+  return subject.replace(/^(\s*(re|fwd?|aw|wg|sv|rv|tr)[\[\d\]]*:\s*)*/i, "").trim();
+}
 
 function parseFrom(from: string): { senderName: string; senderEmail: string } {
   const match = from.match(/^(.+?)\s*<([^>]+)>$/);
@@ -14,7 +19,12 @@ function parseFrom(from: string): { senderName: string; senderEmail: string } {
 }
 
 router.post("/inbound-email", verifyWebhook, parseMultipart, async (req, res) => {
-  const { from, subject, text, html } = req.body as Record<string, string | undefined>;
+  const parser = new Parse(
+    { keys: ["from", "subject", "text", "html"] },
+    { body: req.body as Record<string, string>, files: [] }
+  );
+
+  const { from, subject, text, html } = parser.keyValues() as Record<string, string | undefined>;
 
   if (!from || !subject) {
     res.status(400).json({ error: "Missing required fields: from, subject" });
@@ -30,7 +40,7 @@ router.post("/inbound-email", verifyWebhook, parseMultipart, async (req, res) =>
   const { senderName, senderEmail } = parseFrom(from);
 
   const ticket = await prisma.ticket.create({
-    data: { subject: subject.trim(), body, senderEmail, senderName },
+    data: { subject: cleanSubject(subject), body, senderEmail, senderName },
   });
 
   await sendClassifyTicketJob(ticket.id);

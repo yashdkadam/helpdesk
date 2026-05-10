@@ -7,11 +7,11 @@ export function verifyWebhook(req: Request, res: Response, next: NextFunction) {
     return;
   }
 
-  const provided = req.headers["x-webhook-secret"];
+  const provided = req.headers["x-webhook-secret"] || req.query.secret;
   if (!provided || provided !== secret) {
     res.status(401).json({ error: "Unauthorized" });
     return;
   }
-
+ 
   next();
 }

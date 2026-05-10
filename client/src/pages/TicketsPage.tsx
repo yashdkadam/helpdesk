@@ -8,7 +8,7 @@ import {
   type TicketFilterParams,
   type SortableTicketField,
 } from "core/schemas/tickets";
-import { TicketStatus, TicketCategory, categoryLabel } from "core/constants/ticket.ts";
+import { TicketStatus, TicketCategory, categoryLabel, statusLabel } from "core/constants/ticket.ts";
 import {
   Select,
   SelectContent,
@@ -22,7 +22,7 @@ import ErrorAlert from "@/components/ErrorAlert";
 import TicketsTable from "@/components/TicketsTable";
 
 const PAGE_SIZE = 10;
-const VISIBLE_STATUSES = [TicketStatus.open, TicketStatus.resolved, TicketStatus.closed] as const;
+const VISIBLE_STATUSES = [TicketStatus.open, TicketStatus.resolved, TicketStatus.auto_resolved, TicketStatus.closed] as const;
 
 interface TicketsResponse {
   tickets: Ticket[];
@@ -88,7 +88,7 @@ export default function TicketsPage() {
           <SelectContent>
             <SelectItem value="all">All statuses</SelectItem>
             {VISIBLE_STATUSES.map((s) => (
-              <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>
+              <SelectItem key={s} value={s}>{statusLabel[s]}</SelectItem>
             ))}
           </SelectContent>
         </Select>

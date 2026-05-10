@@ -10,7 +10,7 @@ import {
 import { ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
 import { Link } from "react-router-dom";
 import { type Ticket } from "core/schemas/tickets";
-import { TicketStatus, TicketCategory, categoryLabel } from "core/constants/ticket.ts";
+import { TicketStatus, TicketCategory, categoryLabel, statusLabel } from "core/constants/ticket.ts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
@@ -210,11 +210,12 @@ function StatusBadge({ status }: { status: TicketStatus }) {
     [TicketStatus.processing]: "bg-muted text-muted-foreground border-border",
     [TicketStatus.open]: "bg-blue-50 text-blue-700 border-blue-200",
     [TicketStatus.resolved]: "bg-green-50 text-green-700 border-green-200",
+    [TicketStatus.auto_resolved]: "bg-purple-50 text-purple-700 border-purple-200",
     [TicketStatus.closed]: "bg-muted text-muted-foreground border-border",
   };
   return (
     <span className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium ${styles[status]}`}>
-      {status}
+      {statusLabel[status]}
     </span>
   );
 }

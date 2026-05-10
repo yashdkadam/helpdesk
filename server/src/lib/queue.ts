@@ -4,6 +4,7 @@ import { join } from "path";
 import { generateText } from "ai";
 import { prisma } from "./prisma";
 import { freeModel } from "./openrouter";
+import { sendReplyEmail } from "./email";
 import type { TicketCategory } from "core/constants/ticket.ts";
 
 const boss = new PgBoss(process.env.DATABASE_URL!);
@@ -127,15 +128,28 @@ Respond with ONLY the JSON — no markdown fences, no preamble.`,
         prompt: `Subject: ${ticket.subject}\n\nMessage:\n${ticket.body}`,
       });
 
-      const json = JSON.parse(text.trim());
+      const raw = text.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+      const match = raw.match(/\{[\s\S]*\}/);
+      if (!match) throw new Error(`No JSON object in response: ${raw.slice(0, 120)}`);
+      const json = JSON.parse(match[0]);
       if (json.resolved === true && typeof json.reply === "string" && json.reply.trim()) {
+        // Strip any greeting the model may have written, then prepend a consistent one
+        const replyText = json.reply.trim().replace(/^(hi|hello|dear)\s+\S+[,.]?\s*/i, "");
+        const body = `Hi ${firstName},\n\n${replyText}`;
         await prisma.ticketReply.create({
           data: {
             ticketId,
             senderType: "agent",
-            body: json.reply.trim(),
+            body,
           },
         });
+        sendReplyEmail({
+          to: ticket.senderEmail,
+          toName: ticket.senderName,
+          subject: ticket.subject,
+          body,
+        }).catch((err) => console.error("[email] Failed to send auto-resolve email:", err));
+
         await prisma.ticket.update({
           where: { id: ticketId },
           data: { status: "auto_resolved" },
