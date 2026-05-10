@@ -49,6 +49,7 @@
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.55 0.18 250);
 }
 
 .dark {
@@ -71,6 +72,7 @@
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.65 0.18 250);
 }
 
 @layer base {

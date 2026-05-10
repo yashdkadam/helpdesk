@@ -34,6 +34,16 @@ export async function startQueue(): Promise<void> {
     console.warn("[queue] Could not read knowledge-base.md, continuing without it:", err);
   }
 
+  const aiAgent = await prisma.user.findFirst({
+    where: { email: "ai@helpdesk.internal" },
+    select: { id: true },
+  });
+  const aiAgentId = aiAgent?.id ?? null;
+
+  if (!aiAgentId) {
+    console.warn("[queue] AI agent not found — tickets will not be auto-assigned");
+  }
+
   await boss.start();
   await boss.createQueue(CLASSIFY_TICKET_QUEUE);
   await boss.createQueue(AUTO_RESOLVE_TICKET_QUEUE);
@@ -92,6 +102,13 @@ Reply with ONLY the category name — nothing else.`,
     const ticket = await prisma.ticket.findUnique({ where: { id: ticketId } });
     if (!ticket) return;
 
+    if (aiAgentId) {
+      await prisma.ticket.update({
+        where: { id: ticketId },
+        data: { assignedToId: aiAgentId },
+      });
+    }
+
     let resolved = false;
     try {
       const firstName = ticket.senderName.trim().split(" ")[0];
@@ -132,7 +149,7 @@ Respond with ONLY the JSON — no markdown fences, no preamble.`,
     if (!resolved) {
       await prisma.ticket.update({
         where: { id: ticketId },
-        data: { status: "open" },
+        data: { status: "open", assignedToId: null },
       });
     }
 

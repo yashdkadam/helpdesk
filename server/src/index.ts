@@ -9,6 +9,7 @@ import { startQueue, stopQueue } from "./lib/queue";
 import usersRouter from "./routes/users";
 import ticketsRouter from "./routes/tickets";
 import webhooksRouter from "./routes/webhooks";
+import statsRouter from "./routes/stats";
 
 if (!process.env.BETTER_AUTH_SECRET || process.env.BETTER_AUTH_SECRET.startsWith("change-this")) {
   throw new Error("BETTER_AUTH_SECRET must be set to a random value");
@@ -54,6 +55,7 @@ app.get("/api/me", requireAuth, (req, res) => {
 app.use("/api/users", usersRouter);
 app.use("/api/tickets", ticketsRouter);
 app.use("/api/webhooks", webhooksRouter);
+app.use("/api/stats", statsRouter);
 
 async function boot() {
   await startQueue();
