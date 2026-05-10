@@ -1,0 +1,10 @@
+[build]
+builder = "nixpacks"
+buildCommand = "bun install && (cd client && bun run build) && (cd server && bunx prisma generate)"
+
+[deploy]
+startCommand = "cd server && bunx prisma migrate deploy && bun run src/index.ts"
+healthcheckPath = "/api/health"
+healthcheckTimeout = 300
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3

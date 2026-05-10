@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import { rateLimit } from "express-rate-limit";
+import { join } from "path";
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "./lib/auth";
 import { requireAuth } from "./middleware/require-auth";
@@ -56,6 +57,14 @@ app.use("/api/users", usersRouter);
 app.use("/api/tickets", ticketsRouter);
 app.use("/api/webhooks", webhooksRouter);
 app.use("/api/stats", statsRouter);
+
+if (process.env.NODE_ENV === "production") {
+  const clientDist = join(import.meta.dirname, "../../client/dist");
+  app.use(express.static(clientDist));
+  app.get(/^(?!\/api)/, (_req, res) => {
+    res.sendFile(join(clientDist, "index.html"));
+  });
+}
 
 async function boot() {
   await startQueue();
