@@ -59,7 +59,8 @@
       "PowerShell(Invoke-RestMethod -Uri \"http://localhost:3000/api/tickets\" -Method Post -ContentType \"application/json\" -Body '{\"subject\":\"Test ticket\",\"body\":\"Hello I need help\",\"fromEmail\":\"user@example.com\",\"fromName\":\"Test User\"}')",
       "PowerShell(Get-NetTCPConnection *)",
       "PowerShell(Stop-Process *)",
-      "PowerShell(Get-Process *)"
+      "PowerShell(Get-Process *)",
+      "PowerShell(Start-Process -NoNewWindow -FilePath \"bun\" -ArgumentList \"run\",\"dev\" -WorkingDirectory \"D:\\\\claude-code\\\\helpdesk\\\\server\" -RedirectStandardOutput \"$env:TEMP\\\\helpdesk-server.log\" -RedirectStandardError \"$env:TEMP\\\\helpdesk-server-err.log\")"
     ]
   }
 }

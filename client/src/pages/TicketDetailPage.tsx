@@ -103,6 +103,11 @@ export default function TicketDetailPage() {
     },
   });
 
+  const summarizeMutation = useMutation({
+    mutationFn: () =>
+      axios.post<{ summary: string }>(`/api/tickets/${id}/summarize`).then((r) => r.data),
+  });
+
   const replies = repliesData?.replies ?? [];
 
   return (
@@ -135,6 +140,37 @@ export default function TicketDetailPage() {
                 <p className="whitespace-pre-wrap text-sm">{ticket.body}</p>
               </CardContent>
             </Card>
+
+            <div className="space-y-3">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => summarizeMutation.mutate()}
+                disabled={summarizeMutation.isPending}
+              >
+                <Sparkles className="h-4 w-4 mr-1.5" />
+                {summarizeMutation.isPending ? "Summarizing…" : summarizeMutation.data ? "Re-summarize" : "Summarize"}
+              </Button>
+
+              {summarizeMutation.error && (
+                <ErrorAlert error={summarizeMutation.error} fallback="Failed to summarize ticket." />
+              )}
+
+              {summarizeMutation.data && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+                      <Sparkles className="h-3.5 w-3.5" />
+                      Summary
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="whitespace-pre-wrap text-sm">{summarizeMutation.data.summary}</p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
 
             <Card>
               <CardHeader>

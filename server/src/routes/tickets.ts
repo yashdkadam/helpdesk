@@ -175,6 +175,44 @@ router.post("/:id/replies", requireAuth, async (req, res) => {
   res.status(201).json(reply);
 });
 
+router.post("/:id/summarize", requireAuth, async (req, res) => {
+  const id = parseId(req.params.id);
+  if (!id) {
+    res.status(400).json({ error: "Invalid ticket ID" });
+    return;
+  }
+
+  const ticket = await prisma.ticket.findUnique({ where: { id } });
+  if (!ticket) {
+    res.status(404).json({ error: "Ticket not found" });
+    return;
+  }
+
+  const replies = await prisma.ticketReply.findMany({
+    where: { ticketId: id },
+    orderBy: { createdAt: "asc" },
+    include: { author: { select: { name: true } } },
+  });
+
+  const conversation = replies
+    .map((r) => {
+      const sender = r.senderType === "agent" ? (r.author?.name ?? "Agent") : ticket.senderName;
+      return `${sender}: ${r.body}`;
+    })
+    .join("\n\n");
+
+  const prompt = `Ticket subject: ${ticket.subject}\n\nCustomer message:\n${ticket.body}${conversation ? `\n\nConversation:\n${conversation}` : ""}`;
+
+  const { text } = await generateText({
+    model: freeModel,
+    system:
+      "You are a customer support assistant. Summarize the support ticket and conversation history concisely. Include the customer's main issue, any solutions or responses provided, and the current status. Return only the summary — no preamble, no explanation.",
+    prompt,
+  });
+
+  res.json({ summary: text });
+});
+
 router.post("/:id/polish-reply", requireAuth, async (req, res) => {
   const id = parseId(req.params.id);
   if (!id) {
