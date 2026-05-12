@@ -1,0 +1,23 @@
+name: Seed Database
+
+on:
+  workflow_dispatch:
+
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Run seed on EC2
+        uses: appleboy/ssh-action@v1.0.0
+        env:
+          SEED_ADMIN_EMAIL: ${{ secrets.SEED_ADMIN_EMAIL }}
+          SEED_ADMIN_PASSWORD: ${{ secrets.SEED_ADMIN_PASSWORD }}
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          envs: SEED_ADMIN_EMAIL,SEED_ADMIN_PASSWORD
+          script: |
+            docker exec helpdesk sh -c \
+              "cd /app/server && SEED_ADMIN_EMAIL=$SEED_ADMIN_EMAIL SEED_ADMIN_PASSWORD=$SEED_ADMIN_PASSWORD bun run db:seed"

@@ -1,0 +1,10 @@
+node_modules
+**/node_modules
+.env
+server/.env
+**/.git
+e2e
+public
+*.md
+provision.py
+*.pem

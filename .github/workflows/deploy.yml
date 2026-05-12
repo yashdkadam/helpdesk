@@ -1,0 +1,92 @@
+name: Deploy to AWS
+
+on:
+  push:
+    branches: [main]
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPO: helpdesk
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push Docker image
+        env:
+          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG .
+          docker tag $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPO:latest
+          docker push $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPO:latest
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.0
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
+          BETTER_AUTH_URL: ${{ secrets.BETTER_AUTH_URL }}
+          CLIENT_URL: ${{ secrets.CLIENT_URL }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+          SENDGRID_FROM_EMAIL: ${{ secrets.SENDGRID_FROM_EMAIL }}
+          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          envs: DATABASE_URL,BETTER_AUTH_SECRET,BETTER_AUTH_URL,CLIENT_URL,OPENROUTER_API_KEY,SENDGRID_API_KEY,SENDGRID_FROM_EMAIL,ECR_REGISTRY
+          script: |
+            # Wait for Docker to be ready (in case EC2 just booted)
+            until command -v docker &>/dev/null; do echo "Waiting for Docker..."; sleep 5; done
+
+            # Write env file
+            {
+              echo "DATABASE_URL=$DATABASE_URL"
+              echo "BETTER_AUTH_SECRET=$BETTER_AUTH_SECRET"
+              echo "BETTER_AUTH_URL=$BETTER_AUTH_URL"
+              echo "CLIENT_URL=$CLIENT_URL"
+              echo "NODE_ENV=production"
+              echo "PORT=3000"
+              echo "OPENROUTER_API_KEY=$OPENROUTER_API_KEY"
+              echo "SENDGRID_API_KEY=$SENDGRID_API_KEY"
+              echo "SENDGRID_FROM_EMAIL=$SENDGRID_FROM_EMAIL"
+            } > ~/helpdesk.env
+
+            # Authenticate with ECR using EC2 IAM role
+            aws ecr get-login-password --region us-east-1 | \
+              docker login --username AWS --password-stdin "$ECR_REGISTRY"
+
+            # Pull new image
+            docker pull "$ECR_REGISTRY/helpdesk:latest"
+
+            # Restart container
+            docker stop helpdesk 2>/dev/null || true
+            docker rm helpdesk 2>/dev/null || true
+            docker run -d \
+              --name helpdesk \
+              --env-file ~/helpdesk.env \
+              -p 80:3000 \
+              --restart unless-stopped \
+              "$ECR_REGISTRY/helpdesk:latest"
+
+            # Clean up old images
+            docker system prune -f
+
+            echo "Deployment complete. App running at http://$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)"
