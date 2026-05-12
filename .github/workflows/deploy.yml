@@ -72,15 +72,15 @@ jobs:
 
             # Authenticate with ECR using EC2 IAM role
             aws ecr get-login-password --region us-east-1 | \
-              docker login --username AWS --password-stdin "$ECR_REGISTRY"
+              sudo docker login --username AWS --password-stdin "$ECR_REGISTRY"
 
             # Pull new image
-            docker pull "$ECR_REGISTRY/helpdesk:latest"
+            sudo docker pull "$ECR_REGISTRY/helpdesk:latest"
 
             # Restart container
-            docker stop helpdesk 2>/dev/null || true
-            docker rm helpdesk 2>/dev/null || true
-            docker run -d \
+            sudo docker stop helpdesk 2>/dev/null || true
+            sudo docker rm helpdesk 2>/dev/null || true
+            sudo docker run -d \
               --name helpdesk \
               --env-file ~/helpdesk.env \
               -p 80:3000 \
@@ -88,6 +88,6 @@ jobs:
               "$ECR_REGISTRY/helpdesk:latest"
 
             # Clean up old images
-            docker system prune -f
+            sudo docker system prune -f
 
             echo "Deployment complete. App running at http://$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)"
