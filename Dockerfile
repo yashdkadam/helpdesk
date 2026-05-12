@@ -4,7 +4,7 @@ COPY package.json bun.lock ./
 COPY core/package.json ./core/
 COPY client/package.json ./client/
 COPY server/package.json ./server/
-COPY e2e/package.json ./e2e/
+RUN mkdir -p e2e && echo '{"name":"e2e","version":"1.0.0","private":true}' > e2e/package.json
 RUN bun install --frozen-lockfile
 COPY core ./core
 COPY client ./client
