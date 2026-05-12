@@ -4,6 +4,7 @@ COPY package.json bun.lock ./
 COPY core/package.json ./core/
 COPY client/package.json ./client/
 COPY server/package.json ./server/
+COPY e2e/package.json ./e2e/
 RUN bun install --frozen-lockfile
 COPY core ./core
 COPY client ./client
