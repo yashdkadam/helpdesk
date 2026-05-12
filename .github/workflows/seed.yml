@@ -6,6 +6,7 @@ on:
 jobs:
   seed:
     runs-on: ubuntu-latest
+    environment: prod
 
     steps:
       - name: Run seed on EC2
