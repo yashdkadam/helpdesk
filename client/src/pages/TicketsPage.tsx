@@ -1,7 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
-import { type SortingState } from "@tanstack/react-table";
+import { type SortingState, type Updater } from "@tanstack/react-table";
 import {
   type Ticket,
   type TicketSortParams,
@@ -59,8 +59,8 @@ export default function TicketsPage() {
     setPage(1);
   }
 
-  function updateSorting(next: SortingState) {
-    setSorting(next);
+  function updateSorting(updaterOrValue: Updater<SortingState>) {
+    setSorting(updaterOrValue);
     setPage(1);
   }
 

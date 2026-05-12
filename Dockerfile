@@ -9,8 +9,8 @@ RUN bun install
 COPY core ./core
 COPY client ./client
 COPY server ./server
-RUN cd client && bun run build
 RUN cd server && bunx prisma generate
+RUN cd client && bun run build
 
 FROM oven/bun:1-slim AS runner
 WORKDIR /app
