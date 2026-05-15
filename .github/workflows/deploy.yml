@@ -47,12 +47,13 @@ jobs:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
           SENDGRID_FROM_EMAIL: ${{ secrets.SENDGRID_FROM_EMAIL }}
+          WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}
           ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: DATABASE_URL,BETTER_AUTH_SECRET,BETTER_AUTH_URL,CLIENT_URL,OPENROUTER_API_KEY,SENDGRID_API_KEY,SENDGRID_FROM_EMAIL,ECR_REGISTRY
+          envs: DATABASE_URL,BETTER_AUTH_SECRET,BETTER_AUTH_URL,CLIENT_URL,OPENROUTER_API_KEY,SENDGRID_API_KEY,SENDGRID_FROM_EMAIL,WEBHOOK_SECRET,ECR_REGISTRY
           script: |
             # Wait for Docker to be ready (in case EC2 just booted)
             until command -v docker &>/dev/null; do echo "Waiting for Docker..."; sleep 5; done
@@ -69,6 +70,7 @@ jobs:
               echo "OPENROUTER_API_KEY=$OPENROUTER_API_KEY"
               echo "SENDGRID_API_KEY=$SENDGRID_API_KEY"
               echo "SENDGRID_FROM_EMAIL=$SENDGRID_FROM_EMAIL"
+              echo "WEBHOOK_SECRET=$WEBHOOK_SECRET"
             } > ~/helpdesk.env
 
             # Authenticate with ECR using EC2 IAM role
