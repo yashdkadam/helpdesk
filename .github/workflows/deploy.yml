@@ -65,6 +65,7 @@ jobs:
               echo "CLIENT_URL=$CLIENT_URL"
               echo "NODE_ENV=production"
               echo "PORT=3000"
+              echo "PGSSLMODE=no-verify"
               echo "OPENROUTER_API_KEY=$OPENROUTER_API_KEY"
               echo "SENDGRID_API_KEY=$SENDGRID_API_KEY"
               echo "SENDGRID_FROM_EMAIL=$SENDGRID_FROM_EMAIL"
