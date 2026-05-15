@@ -63,7 +63,8 @@
       "PowerShell(Start-Process -NoNewWindow -FilePath \"bun\" -ArgumentList \"run\",\"dev\" -WorkingDirectory \"D:\\\\claude-code\\\\helpdesk\\\\server\" -RedirectStandardOutput \"$env:TEMP\\\\helpdesk-server.log\" -RedirectStandardError \"$env:TEMP\\\\helpdesk-server-err.log\")",
       "Bash(Select-Object Name, PSIsContainer)",
       "Bash(ls .github)",
-      "Bash(cat .gitignore)"
+      "Bash(cat .gitignore)",
+      "Bash(echo \"exit: $?\")"
     ]
   }
 }

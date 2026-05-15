@@ -47,7 +47,7 @@ router.get("/", requireAuth, async (req, res) => {
 });
 
 router.get("/:id", requireAuth, async (req, res) => {
-  const id = parseId(req.params.id);
+  const id = parseId(req.params.id as string);
   if (!id) {
     res.status(400).json({ error: "Invalid ticket ID" });
     return;
@@ -66,7 +66,7 @@ router.get("/:id", requireAuth, async (req, res) => {
 });
 
 router.patch("/:id", requireAuth, async (req, res) => {
-  const id = parseId(req.params.id);
+  const id = parseId(req.params.id as string);
   if (!id) {
     res.status(400).json({ error: "Invalid ticket ID" });
     return;
@@ -91,7 +91,7 @@ router.patch("/:id", requireAuth, async (req, res) => {
 });
 
 router.patch("/:id/assign", requireAuth, async (req, res) => {
-  const id = parseId(req.params.id);
+  const id = parseId(req.params.id as string);
   if (!id) {
     res.status(400).json({ error: "Invalid ticket ID" });
     return;
@@ -126,7 +126,7 @@ router.patch("/:id/assign", requireAuth, async (req, res) => {
 const REPLY_AUTHOR_SELECT = { id: true, name: true, email: true } as const;
 
 router.get("/:id/replies", requireAuth, async (req, res) => {
-  const id = parseId(req.params.id);
+  const id = parseId(req.params.id as string);
   if (!id) {
     res.status(400).json({ error: "Invalid ticket ID" });
     return;
@@ -148,7 +148,7 @@ router.get("/:id/replies", requireAuth, async (req, res) => {
 });
 
 router.post("/:id/replies", requireAuth, async (req, res) => {
-  const id = parseId(req.params.id);
+  const id = parseId(req.params.id as string);
   if (!id) {
     res.status(400).json({ error: "Invalid ticket ID" });
     return;
@@ -184,7 +184,7 @@ router.post("/:id/replies", requireAuth, async (req, res) => {
 });
 
 router.post("/:id/summarize", requireAuth, async (req, res) => {
-  const id = parseId(req.params.id);
+  const id = parseId(req.params.id as string);
   if (!id) {
     res.status(400).json({ error: "Invalid ticket ID" });
     return;
@@ -222,7 +222,7 @@ router.post("/:id/summarize", requireAuth, async (req, res) => {
 });
 
 router.post("/:id/polish-reply", requireAuth, async (req, res) => {
-  const id = parseId(req.params.id);
+  const id = parseId(req.params.id as string);
   if (!id) {
     res.status(400).json({ error: "Invalid ticket ID" });
     return;
@@ -240,8 +240,8 @@ router.post("/:id/polish-reply", requireAuth, async (req, res) => {
   const { text } = await generateText({
     model: freeModel,
     system:
-      "You are a professional customer support agent. Improve the draft reply to be clear, professional, empathetic, and concise. Return only the improved reply text — no preamble, no explanation.",
-    prompt: `Ticket subject: ${ticket.subject}\n\nCustomer message:\n${ticket.body}\n\nDraft reply:\n${data.body}`,
+      "You are a professional customer support agent. Improve the draft reply to be clear, professional, empathetic, and concise. Address the customer by their first name at the start of the reply. Sign off the message as 'Yash Customer Support'. Return only the improved reply text — no preamble, no explanation.",
+    prompt: `Ticket subject: ${ticket.subject}\n\nCustomer name: ${ticket.senderName}\n\nCustomer message:\n${ticket.body}\n\nDraft reply:\n${data.body}`,
   });
 
   res.json({ polished: text });
